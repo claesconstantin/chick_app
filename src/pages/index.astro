@@ -94,36 +94,18 @@ const searchData = sortedPosts.map(p => ({
 
     /* Timer */
     .timer-zone { margin-bottom: 0.5rem; }
-    .timer-top { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .timer-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
     .timer-label { font-size: 14px; color: var(--text-secondary); }
-    .timer-presets { display: flex; gap: 6px; flex-wrap: wrap; }
-    .preset-btn {
-      font-family: 'DM Sans', sans-serif; font-size: 13px;
-      padding: 4px 12px; border-radius: 999px;
-      border: 1px solid var(--border); background: transparent;
-      color: var(--text-secondary); cursor: pointer; transition: all 0.12s;
-    }
-    .preset-btn.active, .preset-btn:hover {
-      background: var(--accent-light); border-color: var(--accent); color: var(--text);
-    }
-    .preset-btn.custom-btn { font-style: italic; }
-    .timer-custom-row {
-      display: none; align-items: center; gap: 8px;
-      margin-bottom: 0.5rem;
-    }
-    .custom-input {
+    .timer-inline-input {
       font-family: 'DM Sans', sans-serif; font-size: 14px;
-      padding: 4px 12px; border-radius: 999px;
-      border: 1px solid var(--border); background: var(--search-bg);
-      color: var(--text); outline: none; width: 90px;
+      width: 58px; padding: 3px 8px; text-align: center;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--search-bg); color: var(--text); outline: none;
+      -moz-appearance: textfield;
     }
-    .custom-input:focus { border-color: var(--accent); }
-    .custom-set {
-      font-family: 'DM Sans', sans-serif; font-size: 13px;
-      padding: 4px 14px; border-radius: 999px;
-      border: 1px solid var(--accent); background: var(--accent-light);
-      color: var(--text); cursor: pointer;
-    }
+    .timer-inline-input::-webkit-outer-spin-button,
+    .timer-inline-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .timer-inline-input:focus { border-color: var(--accent); }
     .timer-bottom { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.25rem; }
     .timer-display {
       font-family: 'Cormorant Garamond', serif; font-size: 32px;
@@ -209,22 +191,13 @@ const searchData = sortedPosts.map(p => ({
 
   <!-- Timer -->
   <div class="timer-zone">
-    <div class="timer-top">
+    <div class="timer-row">
       <span class="timer-label">I have</span>
-      <div class="timer-presets">
-        <button class="preset-btn" data-mins="5">5 min</button>
-        <button class="preset-btn active" data-mins="10">10 min</button>
-        <button class="preset-btn" data-mins="20">20 min</button>
-        <button class="preset-btn custom-btn" id="custom-toggle">custom</button>
-      </div>
-      <span class="timer-label">to learn</span>
-    </div>
-    <div class="timer-custom-row" id="custom-row">
-      <input class="custom-input" id="custom-input" type="number" min="1" max="180" step="0.5" placeholder="minutes" />
-      <button class="custom-set" id="custom-set">Set</button>
+      <input class="timer-inline-input" id="timer-input" type="number" value="5" min="0.5" max="180" step="0.5" />
+      <span class="timer-label">minutes to learn</span>
     </div>
     <div class="timer-bottom">
-      <span class="timer-display" id="timer-display">10:00</span>
+      <span class="timer-display" id="timer-display">05:00</span>
       <button class="timer-start-stop" id="timer-start-stop">▶ Start</button>
     </div>
   </div>
@@ -237,7 +210,7 @@ const searchData = sortedPosts.map(p => ({
 <!-- Concept map -->
 <div class="concept-section">
   <p class="section-label">Concept map</p>
-  <ConceptGraph />
+  <ConceptGraph postsJson={JSON.stringify(searchData)} />
 </div>
 
 <!-- Categories grid -->
@@ -293,83 +266,91 @@ const searchData = sortedPosts.map(p => ({
 <script type="application/json" id="posts-data" set:text={JSON.stringify(searchData)}></script>
 
 <script>
-  // ── Search ──────────────────────────────────────────────
+  // ── Search ────────────────────────────────────────────
   const CAT_LABELS: Record<string, string> = {
     mindset: '🧠 Mindset', frameworks: '🗺️ Frameworks',
     tools: '🛠️ Tools', career: '💼 Career', 'soft-skills': '🤝 Soft Skills',
   };
-
   const POSTS: { id: string; title: string; description: string; category: string; tags: string[]; readTime: number }[] =
     JSON.parse((document.getElementById('posts-data') as HTMLScriptElement).text);
 
-  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  function scorePost(p: typeof POSTS[0], q: string): number {
+    const title = p.title.toLowerCase();
+    const desc  = p.description.toLowerCase();
+    const tags  = p.tags.map(t => t.toLowerCase());
+    let s = 0;
+    if (title === q)            s += 100;
+    else if (title.startsWith(q)) s += 80;
+    else if (title.includes(q))   s += 50;
+    if (tags.includes(q))         s += 60;
+    else if (tags.some(t => t.startsWith(q))) s += 40;
+    else if (tags.some(t => t.includes(q)))   s += 20;
+    if (desc.includes(q))         s += 10;
+    return s;
+  }
+
+  const searchInput   = document.getElementById('search-input') as HTMLInputElement;
   const searchResults = document.getElementById('search-results') as HTMLDivElement;
 
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
     if (q.length < 2) { searchResults.style.display = 'none'; return; }
-
-    const matches = POSTS.filter(p =>
-      p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.tags.some(t => t.toLowerCase().includes(q))
-    ).slice(0, 5);
-
-    if (matches.length === 0) {
-      searchResults.innerHTML = '<div class="search-empty">No results found.</div>';
-    } else {
-      searchResults.innerHTML = matches.map(p =>
-        `<a href="/blog/${p.id}" class="search-result">
-          <span class="sr-cat">${CAT_LABELS[p.category] ?? p.category}</span>
-          <span class="sr-title">${p.title}</span>
-          <span class="sr-time">${p.readTime} min</span>
-        </a>`
-      ).join('');
-    }
+    const scored = POSTS
+      .map(p => ({ ...p, score: scorePost(p, q) }))
+      .filter(p => p.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+    searchResults.innerHTML = scored.length === 0
+      ? '<div class="search-empty">No results found.</div>'
+      : scored.map(p =>
+          `<a href="/blog/${p.id}" class="search-result">
+            <span class="sr-cat">${CAT_LABELS[p.category] ?? p.category}</span>
+            <span class="sr-title">${p.title}</span>
+            <span class="sr-time">${p.readTime} min</span>
+          </a>`).join('');
     searchResults.style.display = 'block';
   });
-
   document.addEventListener('click', (e) => {
-    if (!searchInput.contains(e.target as Node) && !searchResults.contains(e.target as Node)) {
+    if (!searchInput.contains(e.target as Node) && !searchResults.contains(e.target as Node))
       searchResults.style.display = 'none';
-    }
   });
 
-  // ── Timer ───────────────────────────────────────────────
-  let timeLeft = 10 * 60;
+  // ── Timer ─────────────────────────────────────────────
+  let timeLeft = 5 * 60;
   let timerRunning = false;
   let interval: ReturnType<typeof setInterval> | null = null;
 
-  const display = document.getElementById('timer-display') as HTMLElement;
+  const display      = document.getElementById('timer-display') as HTMLElement;
   const startStopBtn = document.getElementById('timer-start-stop') as HTMLButtonElement;
-  const customToggle = document.getElementById('custom-toggle') as HTMLButtonElement;
-  const customRow = document.getElementById('custom-row') as HTMLDivElement;
-  const customInput = document.getElementById('custom-input') as HTMLInputElement;
-  const customSet = document.getElementById('custom-set') as HTMLButtonElement;
-  const notifBtn = document.getElementById('notif-btn') as HTMLButtonElement;
+  const timerInput   = document.getElementById('timer-input') as HTMLInputElement;
+  const notifBtn     = document.getElementById('notif-btn') as HTMLButtonElement;
 
-  function fmt(secs: number): string {
-    const m = Math.floor(secs / 60).toString().padStart(2, '0');
-    const s = (secs % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
+  function fmt(s: number) {
+    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
   }
+  display.textContent = fmt(timeLeft);
+
+  timerInput.addEventListener('input', () => {
+    const val = parseFloat(timerInput.value);
+    if (!isNaN(val) && val > 0 && !timerRunning) {
+      timeLeft = Math.round(val * 60);
+      display.textContent = fmt(timeLeft);
+    }
+  });
 
   function playBeep() {
     try {
       const ac = new AudioContext();
       [0, 0.3, 0.6].forEach((delay, i) => {
-        const osc = ac.createOscillator();
-        const gain = ac.createGain();
+        const osc = ac.createOscillator(), gain = ac.createGain();
         osc.connect(gain); gain.connect(ac.destination);
-        osc.frequency.value = i === 2 ? 880 : 660;
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0, ac.currentTime + delay);
-        gain.gain.linearRampToValueAtTime(0.35, ac.currentTime + delay + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + delay + 0.8);
-        osc.start(ac.currentTime + delay);
-        osc.stop(ac.currentTime + delay + 0.8);
+        osc.frequency.value = i === 2 ? 880 : 660; osc.type = 'sine';
+        gain.gain.setValueAtTime(0, ac.currentTime+delay);
+        gain.gain.linearRampToValueAtTime(0.35, ac.currentTime+delay+0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+delay+0.8);
+        osc.start(ac.currentTime+delay); osc.stop(ac.currentTime+delay+0.8);
       });
-    } catch (_) {}
+    } catch(_) {}
   }
 
   function onFinish() {
@@ -379,81 +360,32 @@ const searchData = sortedPosts.map(p => ({
     startStopBtn.classList.remove('running');
     display.textContent = '00:00';
     playBeep();
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('🐣 Session complete!', {
-        body: 'You finished your learning session.',
-        icon: '/favicon.svg',
-      });
-    }
+    if ('Notification' in window && Notification.permission === 'granted')
+      new Notification('🐣 Session complete!', { body: 'Your learning session is done.', icon: '/favicon.svg' });
   }
 
-  function toggleTimer() {
+  startStopBtn.addEventListener('click', () => {
     if (timerRunning) {
-      clearInterval(interval);
-      timerRunning = false;
-      startStopBtn.textContent = '▶ Start';
-      startStopBtn.classList.remove('running');
+      clearInterval(interval); timerRunning = false;
+      startStopBtn.textContent = '▶ Start'; startStopBtn.classList.remove('running');
     } else {
-      if (timeLeft <= 0) timeLeft = 10 * 60;
+      // sync from input before starting
+      const val = parseFloat(timerInput.value);
+      if (!isNaN(val) && val > 0) timeLeft = Math.round(val * 60);
+      if (timeLeft <= 0) timeLeft = 5 * 60;
       timerRunning = true;
-      startStopBtn.textContent = '⏸ Pause';
-      startStopBtn.classList.add('running');
+      startStopBtn.textContent = '⏸ Pause'; startStopBtn.classList.add('running');
       interval = setInterval(() => {
-        timeLeft--;
-        display.textContent = fmt(timeLeft);
+        timeLeft--; display.textContent = fmt(timeLeft);
         if (timeLeft <= 0) onFinish();
       }, 1000);
     }
-  }
-
-  startStopBtn.addEventListener('click', toggleTimer);
-
-  document.querySelectorAll('.preset-btn:not(#custom-toggle)').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const mins = parseFloat((btn as HTMLElement).dataset.mins ?? '10');
-      timeLeft = Math.round(mins * 60);
-      display.textContent = fmt(timeLeft);
-      if (interval) clearInterval(interval);
-      timerRunning = false;
-      startStopBtn.textContent = '▶ Start';
-      startStopBtn.classList.remove('running');
-      customRow.style.display = 'none';
-    });
   });
 
-  customToggle.addEventListener('click', () => {
-    const open = customRow.style.display === 'flex';
-    customRow.style.display = open ? 'none' : 'flex';
-    if (!open) customInput.focus();
-  });
-
-  function applyCustom() {
-    const val = parseFloat(customInput.value);
-    if (!isNaN(val) && val > 0) {
-      timeLeft = Math.round(val * 60);
-      display.textContent = fmt(timeLeft);
-      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-      customToggle.classList.add('active');
-      customRow.style.display = 'none';
-      if (interval) clearInterval(interval);
-      timerRunning = false;
-      startStopBtn.textContent = '▶ Start';
-      startStopBtn.classList.remove('running');
-      customInput.value = '';
-    }
-  }
-
-  customSet.addEventListener('click', applyCustom);
-  customInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyCustom(); });
-
-  // Notification permission
   if ('Notification' in window && Notification.permission !== 'granted') {
     notifBtn.style.display = 'inline';
     notifBtn.addEventListener('click', async () => {
-      const result = await Notification.requestPermission();
-      if (result === 'granted') notifBtn.style.display = 'none';
+      if ((await Notification.requestPermission()) === 'granted') notifBtn.style.display = 'none';
     });
   }
 </script>
