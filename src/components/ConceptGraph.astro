@@ -1,0 +1,315 @@
+---
+---
+
+<div class="cg-wrap">
+  <canvas id="cg-canvas"></canvas>
+  <div class="cg-tooltip" id="cg-tooltip"></div>
+  <div class="cg-legend">
+    <span class="cg-legend-dot" style="background:#C4995A"></span> Mindset
+    <span class="cg-legend-dot" style="background:#7A6A52"></span> Frameworks
+    <span class="cg-legend-dot" style="background:#B8A88A"></span> Career
+    <span class="cg-legend-dot" style="background:#A0806A"></span> Soft skills
+    <span style="margin-left:8px;opacity:.6">· underlined = article exists</span>
+  </div>
+</div>
+
+<style>
+  .cg-wrap {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #FAF7F0;
+    border: 1px solid #E8D5A3;
+  }
+  #cg-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  .cg-tooltip {
+    position: absolute;
+    background: #2C2416;
+    color: #FAF7F0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+    display: none;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .cg-legend {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    color: #B8A88A;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+  }
+  .cg-legend-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('cg-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const tooltip = document.getElementById('cg-tooltip')!;
+
+  let W = 0, H = 0;
+  let dpr = 1;
+
+  const CAT_COLORS: Record<string, string> = {
+    mindset:     '#C4995A',
+    frameworks:  '#7A6A52',
+    career:      '#B8A88A',
+    'soft-skills': '#A0806A',
+  };
+
+  interface Node {
+    id: string; label: string; cat: string;
+    article?: string;
+    x: number; y: number; vx: number; vy: number;
+    w: number; h: number; fx: number; fy: number;
+  }
+
+  const NODES: Node[] = [
+    { id: 'surface-luck',    label: 'Surface luck',      cat: 'frameworks',   article: '/blog/surface-luck',      x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'speed-velocity',  label: 'Speed vs. velocity', cat: 'mindset',     article: '/blog/speed-vs-velocity', x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: '99-done',         label: '99% done',           cat: 'soft-skills', article: '/blog/99-percent-done',   x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'pmf',             label: 'PMF',                cat: 'frameworks',  x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'gtm',             label: 'GTM',                cat: 'frameworks',  x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'equity',          label: 'Equity',             cat: 'career',      x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'compounding',     label: 'Compounding',        cat: 'mindset',     x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'operator',        label: 'Operator mindset',   cat: 'mindset',     x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'networking',      label: 'Networking',         cat: 'frameworks',  x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'communication',   label: 'Communication',      cat: 'soft-skills', x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+    { id: 'direction',       label: 'Direction',          cat: 'mindset',     x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
+  ];
+
+  // [i, j] index pairs
+  const EDGES: [number, number][] = [
+    [0, 8],  // surface-luck — networking
+    [0, 4],  // surface-luck — gtm
+    [1, 10], // speed-velocity — direction
+    [1, 7],  // speed-velocity — operator
+    [2, 9],  // 99-done — communication
+    [2, 7],  // 99-done — operator
+    [3, 4],  // pmf — gtm
+    [7, 6],  // operator — compounding
+    [6, 5],  // compounding — equity
+    [10, 7], // direction — operator
+    [8, 6],  // networking — compounding
+    [0, 6],  // surface-luck — compounding
+    [1, 6],  // speed-velocity — compounding
+  ];
+
+  function measureNodes() {
+    ctx.font = '11px DM Sans, sans-serif';
+    NODES.forEach(n => {
+      n.w = Math.max(56, ctx.measureText(n.label).width + 24);
+    });
+  }
+
+  function initPositions() {
+    NODES.forEach((n, i) => {
+      const angle = (i / NODES.length) * Math.PI * 2 - Math.PI / 2;
+      const r = Math.min(W, H) * 0.32;
+      n.x = W / 2 + r * Math.cos(angle);
+      n.y = H / 2 + r * Math.sin(angle);
+      n.vx = 0; n.vy = 0;
+    });
+  }
+
+  function simulate() {
+    const REPULSE = 3500;
+    const SPRING_K = 0.045;
+    const REST = 120;
+    const GRAVITY = 0.012;
+    const DAMP = 0.86;
+
+    NODES.forEach(n => { n.fx = 0; n.fy = 0; });
+
+    // Repulsion
+    for (let i = 0; i < NODES.length; i++) {
+      for (let j = i + 1; j < NODES.length; j++) {
+        const a = NODES[i], b = NODES[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const d = Math.sqrt(dx * dx + dy * dy) + 0.1;
+        const f = REPULSE / (d * d);
+        const fx = f * dx / d, fy = f * dy / d;
+        a.fx -= fx; a.fy -= fy;
+        b.fx += fx; b.fy += fy;
+      }
+    }
+
+    // Springs
+    EDGES.forEach(([i, j]) => {
+      const a = NODES[i], b = NODES[j];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.sqrt(dx * dx + dy * dy) + 0.1;
+      const f = SPRING_K * (d - REST);
+      const fx = f * dx / d, fy = f * dy / d;
+      a.fx += fx; a.fy += fy;
+      b.fx -= fx; b.fy -= fy;
+    });
+
+    // Gravity to center
+    NODES.forEach(n => {
+      n.fx += (W / 2 - n.x) * GRAVITY;
+      n.fy += (H / 2 - n.y) * GRAVITY;
+    });
+
+    // Integrate + clamp
+    NODES.forEach(n => {
+      n.vx = (n.vx + n.fx) * DAMP;
+      n.vy = (n.vy + n.fy) * DAMP;
+      n.x += n.vx;
+      n.y += n.vy;
+      const px = n.w / 2 + 8, py = n.h / 2 + 8;
+      n.x = Math.max(px, Math.min(W - px, n.x));
+      n.y = Math.max(py, Math.min(H - py, n.y));
+    });
+  }
+
+  function pill(x: number, y: number, w: number, h: number) {
+    const r = h / 2;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+  }
+
+  let hoveredNode: Node | null = null;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Edges
+    EDGES.forEach(([i, j]) => {
+      const a = NODES[i], b = NODES[j];
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.strokeStyle = '#E8D5A3';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // Nodes
+    NODES.forEach(n => {
+      const hov = n === hoveredNode;
+      const color = CAT_COLORS[n.cat] || '#B8A88A';
+      pill(n.x - n.w / 2, n.y - n.h / 2, n.w, n.h);
+      ctx.fillStyle = hov ? '#F5EDDA' : '#FDFAF4';
+      ctx.fill();
+      ctx.strokeStyle = hov ? '#C4995A' : color;
+      ctx.lineWidth = n.article ? (hov ? 2 : 1.5) : 1;
+      ctx.stroke();
+
+      ctx.fillStyle = hov ? '#2C2416' : '#2C2416';
+      ctx.font = `${n.article ? '500' : '400'} 11px 'DM Sans', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(n.label, n.x, n.y);
+
+      // Underline for articles
+      if (n.article) {
+        const tw = ctx.measureText(n.label).width;
+        ctx.beginPath();
+        ctx.moveTo(n.x - tw / 2, n.y + 7);
+        ctx.lineTo(n.x + tw / 2, n.y + 7);
+        ctx.strokeStyle = hov ? '#C4995A' : color;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    });
+  }
+
+  let animId: number;
+
+  function loop() {
+    simulate();
+    draw();
+    animId = requestAnimationFrame(loop);
+  }
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    W = rect.width;
+    H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
+    measureNodes();
+  }
+
+  // Warm up: run sim silently before first paint
+  function warmup(steps: number) {
+    measureNodes();
+    initPositions();
+    for (let i = 0; i < steps; i++) simulate();
+  }
+
+  // Mouse
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    hoveredNode = null;
+    for (const n of NODES) {
+      if (mx >= n.x - n.w / 2 && mx <= n.x + n.w / 2 &&
+          my >= n.y - n.h / 2 && my <= n.y + n.h / 2) {
+        hoveredNode = n;
+        break;
+      }
+    }
+    canvas.style.cursor = hoveredNode?.article ? 'pointer' : 'default';
+    if (hoveredNode?.article) {
+      tooltip.style.display = 'block';
+      tooltip.style.left = (mx + 12) + 'px';
+      tooltip.style.top = (my - 28) + 'px';
+      tooltip.textContent = 'Read article →';
+    } else {
+      tooltip.style.display = 'none';
+    }
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    hoveredNode = null;
+    tooltip.style.display = 'none';
+  });
+
+  canvas.addEventListener('click', () => {
+    if (hoveredNode?.article) window.location.href = hoveredNode.article;
+  });
+
+  // Init
+  resize();
+  warmup(200);
+  loop();
+
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(animId);
+    resize();
+    initPositions();
+    warmup(100);
+    loop();
+  });
+</script>

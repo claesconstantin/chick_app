@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import ConceptGraph from '../components/ConceptGraph.astro';
 
 const posts = await getCollection('blog');
 const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
@@ -22,6 +23,7 @@ const base = '';
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chickentrepreneur</title>
   <meta name="description" content="Fresh eyes on the startup world, seen from the inside." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
@@ -353,20 +355,7 @@ const base = '';
 <!-- Concept map -->
 <div class="concept-section">
   <p class="section-label">Concept map</p>
-  <div class="concept-container">
-    <div class="concept-nodes">
-      <span class="concept-node">PMF</span>
-      <span class="concept-node">Surface luck</span>
-      <span class="concept-node">Velocity</span>
-      <span class="concept-node">GTM</span>
-      <span class="concept-node">Equity</span>
-      <span class="concept-node">Compounding</span>
-      <span class="concept-node">Operator mindset</span>
-      <span class="concept-node">Adoption gap</span>
-      <span class="concept-node">Direction vs. pace</span>
-    </div>
-    <p class="concept-coming">Interactive concept graph · coming in v2</p>
-  </div>
+  <ConceptGraph />
 </div>
 
 <!-- Categories grid -->
