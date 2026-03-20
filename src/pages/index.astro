@@ -1,49 +1,474 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog');
+const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const categoryLabels: Record<string, string> = {
+  mindset: '🧠 Mindset',
+  frameworks: '🗺️ Frameworks & GTM',
+  tools: '🛠️ Tools & Tech',
+  career: '💼 Career',
+  'soft-skills': '🤝 Soft Skills',
+};
+
+const base = '/chick_app';
 ---
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This template
-				serves as a lightweight, minimally-styled starting point for anyone looking to build a personal
-				website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to
-				<a href="https://docs.astro.build/">read the docs</a>
-				or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>
-				by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chickentrepreneur</title>
+  <meta name="description" content="Fresh eyes on the startup world, seen from the inside." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #FDFAF4;
+      --text: #2C2416;
+      --text-secondary: #7A6A52;
+      --text-muted: #B8A88A;
+      --accent: #C4995A;
+      --accent-light: #F5EDDA;
+      --border: #E8D5A3;
+      --search-bg: #FAF7F0;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    h1, h2, h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+    strong, b { font-weight: 500; }
+
+    /* Nav */
+    nav {
+      border-bottom: 0.5px solid var(--border);
+      padding: 0 1.5rem;
+    }
+    .nav-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .nav-right { display: flex; gap: 0.5rem; align-items: center; position: relative; }
+    .btn-pill {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--accent-light);
+      color: var(--text);
+      text-decoration: none;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .dropdown-wrapper { position: relative; }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px;
+      min-width: 190px;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(44,36,22,0.08);
+    }
+    .dropdown-menu.open { display: block; }
+    .dropdown-menu a {
+      display: block;
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--text);
+      border-radius: 6px;
+    }
+    .dropdown-menu a:hover { background: var(--accent-light); }
+
+    /* Sections */
+    .section { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Hero */
+    .hero { padding: 3rem 1.5rem 2rem; max-width: 720px; margin: 0 auto; }
+    .pill-tag {
+      display: inline-block;
+      font-size: 11px;
+      background: var(--accent-light);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 999px;
+      padding: 3px 12px;
+      margin-bottom: 1rem;
+      letter-spacing: 0.02em;
+    }
+    .hero h1 {
+      font-size: 48px;
+      margin: 0 0 0.4rem;
+      color: var(--text);
+    }
+    .hero-sub {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin: 0 0 1.5rem;
+    }
+    .search-bar {
+      width: 100%;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--search-bg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 1.5rem;
+    }
+    .search-bar::placeholder { color: var(--text-muted); }
+    .search-bar:focus { border-color: var(--accent); }
+
+    /* Timer */
+    .timer-widget {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .timer-label { font-size: 14px; color: var(--text-secondary); }
+    .timer-presets { display: flex; gap: 6px; }
+    .preset-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn.active, .preset-btn:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .timer-display {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      color: var(--accent);
+      min-width: 60px;
+      text-align: center;
+    }
+    .timer-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0 0 2.5rem;
+    }
+
+    /* Section labels */
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    /* Concept map */
+    .concept-section { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
+    .concept-container {
+      background: var(--accent-light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+    .concept-nodes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .concept-node {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .concept-coming {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* Categories grid */
+    .categories-section { padding: 0 1.5rem 2rem; max-width: 720px; margin: 0 auto; }
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+    .category-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .category-card.dashed {
+      border-style: dashed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .category-emoji { font-size: 20px; margin-bottom: 0.25rem; }
+    .category-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 0.15rem;
+    }
+    .category-sub { font-size: 11px; color: var(--text-muted); }
+    .category-coming { font-size: 12px; color: var(--text-muted); text-align: center; }
+
+    /* Articles list */
+    .articles-section { padding: 0 1.5rem 3rem; max-width: 720px; margin: 0 auto; }
+    .article-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .article-row:first-child { border-top: 0.5px solid var(--border); }
+    .cat-pill {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--accent-light);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .article-title {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .article-title:hover { color: var(--accent); }
+    .read-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 0.5px solid var(--border);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 36px; }
+      .categories-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <a href={`${base}/`} class="nav-logo">🐣 Chickentrepreneur</a>
+    <div class="nav-right">
+      <a href={`${base}/about`} class="btn-pill">About</a>
+      <div class="dropdown-wrapper">
+        <button class="btn-pill btn-ghost" id="learn-btn">Learn ↓</button>
+        <div class="dropdown-menu" id="learn-dropdown">
+          <a href={`${base}/`}>🧠 Mindset</a>
+          <a href={`${base}/`}>🗺️ Frameworks & GTM</a>
+          <a href={`${base}/`}>🛠️ Tools & Tech</a>
+          <a href={`${base}/`}>💼 Career</a>
+          <a href={`${base}/`}>🤝 Soft Skills</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <span class="pill-tag">Twice a month · Pure signal</span>
+  <h1>Learn more than you earn.</h1>
+  <p class="hero-sub">Fresh eyes on the startup world, seen from the inside.</p>
+  <input class="search-bar" type="text" placeholder="What do you want to learn today?" />
+  <div class="timer-widget">
+    <span class="timer-label">I have</span>
+    <div class="timer-presets">
+      <button class="preset-btn" data-mins="5">5 min</button>
+      <button class="preset-btn active" data-mins="10">10 min</button>
+      <button class="preset-btn" data-mins="20">20 min</button>
+    </div>
+    <span class="timer-label">to learn</span>
+    <span class="timer-display" id="timer-display">10:00</span>
+  </div>
+  <p class="timer-note">1 minute of reading = 1 minute of learning.</p>
+</div>
+
+<!-- Concept map -->
+<div class="concept-section">
+  <p class="section-label">Concept map</p>
+  <div class="concept-container">
+    <div class="concept-nodes">
+      <span class="concept-node">PMF</span>
+      <span class="concept-node">Surface luck</span>
+      <span class="concept-node">Velocity</span>
+      <span class="concept-node">GTM</span>
+      <span class="concept-node">Equity</span>
+      <span class="concept-node">Compounding</span>
+      <span class="concept-node">Operator mindset</span>
+      <span class="concept-node">Adoption gap</span>
+      <span class="concept-node">Direction vs. pace</span>
+    </div>
+    <p class="concept-coming">Interactive concept graph · coming in v2</p>
+  </div>
+</div>
+
+<!-- Categories grid -->
+<div class="categories-section">
+  <p class="section-label">Explore by category</p>
+  <div class="categories-grid">
+    <div class="category-card">
+      <div class="category-emoji">🧠</div>
+      <div class="category-name">Mindset</div>
+      <div class="category-sub">Psychology · Philosophy</div>
+    </div>
+    <div class="category-card">
+      <div class="category-emoji">🗺️</div>
+      <div class="category-name">Frameworks & GTM</div>
+      <div class="category-sub">Mental models · Growth</div>
+    </div>
+    <div class="category-card">
+      <div class="category-emoji">🛠️</div>
+      <div class="category-name">Tools & Tech</div>
+      <div class="category-sub">Stack · Productivity</div>
+    </div>
+    <div class="category-card">
+      <div class="category-emoji">💼</div>
+      <div class="category-name">Career</div>
+      <div class="category-sub">Equity · Salary · Path</div>
+    </div>
+    <div class="category-card">
+      <div class="category-emoji">🤝</div>
+      <div class="category-name">Soft Skills</div>
+      <div class="category-sub">Communication · Leadership</div>
+    </div>
+    <div class="category-card dashed">
+      <p class="category-coming">More coming every week</p>
+    </div>
+  </div>
+</div>
+
+<!-- Latest articles -->
+<div class="articles-section">
+  <p class="section-label">Latest articles</p>
+  {sortedPosts.map((post) => (
+    <a href={`${base}/blog/${post.id}`} class="article-row" style="display:flex;text-decoration:none;">
+      <span class="cat-pill">{categoryLabels[post.data.category] ?? post.data.category}</span>
+      <span class="article-title">{post.data.title}</span>
+      <span class="read-time">{post.data.readTime} min read</span>
+    </a>
+  ))}
+</div>
+
+<!-- Footer -->
+<footer>
+  🐣 Chickentrepreneur · by Constantin Claes · Twice a month
+</footer>
+
+<script>
+  // Dropdown toggle
+  const learnBtn = document.getElementById('learn-btn');
+  const learnDropdown = document.getElementById('learn-dropdown');
+  learnBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    learnDropdown?.classList.toggle('open');
+  });
+  document.addEventListener('click', () => {
+    learnDropdown?.classList.remove('open');
+  });
+
+  // Timer
+  let selectedMins = 10;
+  let timeLeft = selectedMins * 60;
+  let interval: ReturnType<typeof setInterval> | null = null;
+  const display = document.getElementById('timer-display');
+
+  function formatTime(secs: number): string {
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function startTimer() {
+    if (interval) clearInterval(interval);
+    interval = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        if (display) display.textContent = formatTime(timeLeft);
+      } else {
+        if (interval) clearInterval(interval);
+      }
+    }, 1000);
+  }
+
+  document.querySelectorAll('.preset-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mins = parseInt((btn as HTMLElement).dataset.mins ?? '10');
+      selectedMins = mins;
+      timeLeft = mins * 60;
+      if (display) display.textContent = formatTime(timeLeft);
+      startTimer();
+    });
+  });
+</script>
+
+</body>
 </html>
