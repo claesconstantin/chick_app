@@ -32,8 +32,8 @@ const { postsJson } = Astro.props;
     height: 320px;
     border-radius: 12px;
     overflow: hidden;
-    background: #FAF7F0;
-    border: 1px solid #E8D5A3;
+    background: rgba(255,255,255,0.45);
+    border: 1px solid rgba(12,27,51,0.18);
   }
   #cg-canvas {
     position: absolute; top: 0; left: 0;
@@ -43,15 +43,15 @@ const { postsJson } = Astro.props;
     position: absolute; bottom: 8px; left: 50%;
     transform: translateX(-50%);
     font-family: 'DM Sans', sans-serif; font-size: 10px;
-    color: #B8A88A; pointer-events: none; white-space: nowrap;
+    color: #9A7197; pointer-events: none; white-space: nowrap;
     transition: opacity 0.3s;
   }
   /* Panel */
   .cg-panel {
     position: absolute; top: 0; right: 0;
     width: 230px; height: 100%;
-    background: rgba(253,250,244,0.97);
-    border-left: 1px solid #E8D5A3;
+    background: rgba(255,233,206,0.97);
+    border-left: 1px solid rgba(12,27,51,0.18);
     border-radius: 0 12px 12px 0;
     display: flex; flex-direction: column;
     padding: 14px 14px 10px;
@@ -64,43 +64,43 @@ const { postsJson } = Astro.props;
     display: flex; align-items: flex-start;
     justify-content: space-between; gap: 8px;
     margin-bottom: 12px;
-    border-bottom: 0.5px solid #E8D5A3; padding-bottom: 10px;
+    border-bottom: 0.5px solid rgba(12,27,51,0.18); padding-bottom: 10px;
   }
   .cg-panel-cat {
     font-family: 'DM Sans', sans-serif; font-size: 10px;
     text-transform: uppercase; letter-spacing: 0.06em;
-    color: #C4995A; margin-bottom: 2px;
+    color: #6CBEED; margin-bottom: 2px;
   }
   .cg-panel-title {
     font-family: 'Cormorant Garamond', serif; font-size: 18px;
-    color: #2C2416; line-height: 1.2;
+    color: #0C1B33; line-height: 1.2;
   }
   .cg-panel-close {
     background: none; border: none; font-size: 18px;
-    color: #B8A88A; cursor: pointer; padding: 0; line-height: 1;
+    color: #9A7197; cursor: pointer; padding: 0; line-height: 1;
     flex-shrink: 0; margin-top: -2px;
   }
-  .cg-panel-close:hover { color: #2C2416; }
+  .cg-panel-close:hover { color: #0C1B33; }
   .cg-panel-articles { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
   .cg-article {
     display: block; padding: 8px 10px; border-radius: 8px;
-    border: 1px solid #E8D5A3; background: #FDFAF4;
+    border: 1px solid rgba(12,27,51,0.18); background: rgba(255,255,255,0.55);
     text-decoration: none; transition: background 0.12s, border-color 0.12s;
   }
-  .cg-article:hover { background: #F5EDDA; border-color: #C4995A; }
+  .cg-article:hover { background: #E3F4FB; border-color: #6CBEED; }
   .cg-article-title {
     font-family: 'DM Sans', sans-serif; font-size: 12px;
-    font-weight: 500; color: #2C2416; margin-bottom: 4px; line-height: 1.4;
+    font-weight: 500; color: #0C1B33; margin-bottom: 4px; line-height: 1.4;
   }
   .cg-article-meta { display: flex; align-items: center; gap: 6px; }
   .cg-article-cat {
     font-size: 9px; padding: 1px 7px; border-radius: 999px;
-    background: #F5EDDA; border: 1px solid #E8D5A3; color: #7A6A52;
+    background: #E3F4FB; border: 1px solid rgba(12,27,51,0.18); color: #3D4F6B;
   }
-  .cg-article-time { font-size: 10px; color: #B8A88A; }
+  .cg-article-time { font-size: 10px; color: #9A7197; }
   .cg-no-articles {
     font-family: 'DM Sans', sans-serif; font-size: 12px;
-    color: #B8A88A; font-style: italic; padding: 4px 0;
+    color: #9A7197; font-style: italic; padding: 4px 0;
   }
 </style>
 
@@ -119,8 +119,9 @@ const { postsJson } = Astro.props;
     tools: '🛠️ Tools', career: '💼 Career', 'soft-skills': '🤝 Soft Skills',
   };
   const CAT_COLORS: Record<string, string> = {
-    mindset: '#C4995A', frameworks: '#7A6A52',
-    career: '#B8A88A', 'soft-skills': '#A0806A',
+    mindset: '#6CBEED', frameworks: '#BE97C6',
+    career: '#9A7197', 'soft-skills': '#6CBEED',
+    tools: '#3D4F6B',
   };
 
   // ── Canvas setup ──────────────────────────────────────
@@ -287,16 +288,16 @@ const { postsJson } = Astro.props;
     EDGES.forEach(([i,j]) => {
       const a = NODES[i], b = NODES[j];
       ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
-      ctx.strokeStyle = '#E8D5A3'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.strokeStyle = 'rgba(12,27,51,0.15)'; ctx.lineWidth = 1; ctx.stroke();
     });
     NODES.forEach(n => {
       const hov = n === hoveredNode;
       const color = CAT_COLORS[n.cat] || '#B8A88A';
       pill(n.x-n.w/2, n.y-n.h/2, n.w, n.h);
-      ctx.fillStyle = hov ? '#F5EDDA' : '#FDFAF4'; ctx.fill();
-      ctx.strokeStyle = hov ? '#C4995A' : color;
+      ctx.fillStyle = hov ? '#E3F4FB' : 'rgba(255,255,255,0.7)'; ctx.fill();
+      ctx.strokeStyle = hov ? '#6CBEED' : color;
       ctx.lineWidth = hov ? 2 : 1; ctx.stroke();
-      ctx.fillStyle = '#2C2416';
+      ctx.fillStyle = '#0C1B33';
       ctx.font = `${n.article ? '500' : '400'} 11px 'DM Sans', sans-serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(n.label, n.x, n.y);
@@ -304,7 +305,7 @@ const { postsJson } = Astro.props;
         const tw = ctx.measureText(n.label).width;
         ctx.beginPath();
         ctx.moveTo(n.x-tw/2, n.y+7); ctx.lineTo(n.x+tw/2, n.y+7);
-        ctx.strokeStyle = hov ? '#C4995A' : color; ctx.lineWidth = 0.8; ctx.stroke();
+        ctx.strokeStyle = hov ? '#6CBEED' : color; ctx.lineWidth = 0.8; ctx.stroke();
       }
     });
   }

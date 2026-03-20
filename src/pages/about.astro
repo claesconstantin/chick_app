@@ -16,15 +16,24 @@ import Nav from '../components/Nav.astro';
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
-      --bg: #FDFAF4; --text: #2C2416; --text-secondary: #7A6A52;
-      --text-muted: #B8A88A; --accent: #C4995A; --accent-light: #F5EDDA; --border: #E8D5A3;
+      --bg: #FFE9CE;
+      --bg-dark: #0C1B33;
+      --text: #0C1B33;
+      --text-secondary: #3D4F6B;
+      --text-muted: #9A7197;
+      --accent: #6CBEED;
+      --accent-2: #BE97C6;
+      --accent-light: #E3F4FB;
+      --border: rgba(12,27,51,0.18);
+      --surface: rgba(255,255,255,0.55);
+      --search-bg: rgba(255,255,255,0.6);
     }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
+    body { font-family: 'DM Sans', sans-serif; background-color: var(--bg); background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(12,27,51,0.055) 27px, rgba(12,27,51,0.055) 28px); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
     a { color: var(--accent); text-decoration: none; }
     h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; line-height: 1.2; }
     strong, b { font-weight: 500; }
 
-    .content { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+    .content { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
     .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 500; margin-bottom: 0.75rem; }
     .content h1 { font-size: 40px; margin: 0 0 1.5rem; }
     .content p { color: var(--text-secondary); margin-bottom: 1rem; max-width: 620px; }
