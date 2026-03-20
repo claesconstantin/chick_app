@@ -12,29 +12,30 @@ import Nav from '../components/Nav.astro';
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
-      --bg: #F5DD72;
-      --bg-dark: #1F487E;
-      --text: #1D3461;
-      --text-secondary: #1F487E;
-      --text-muted: #BB8588;
-      --accent: #247BA0;
-      --accent-2: #BB8588;
-      --accent-light: rgba(36,123,160,0.15);
-      --border: rgba(29,52,97,0.2);
-      --surface: rgba(255,255,255,0.55);
-      --search-bg: rgba(255,255,255,0.65);
+      --bg: #ffffff;
+      --bg-dark: #000000;
+      --text: #0a0a0a;
+      --text-secondary: #555555;
+      --text-muted: #888888;
+      --accent: #a6d1ff;
+      --accent-2: #e3dff2;
+      --accent-3: #daf1de;
+      --accent-light: rgba(166,209,255,0.25);
+      --border: rgba(0,0,0,0.07);
+      --surface: rgba(255,255,255,0.95);
+      --search-bg: #f5f5f5;
     }
-    body { font-family: 'DM Sans', sans-serif; background-color: var(--bg); background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(29,52,97,0.08) 27px, rgba(29,52,97,0.08) 28px); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
-    a { color: var(--accent); text-decoration: none; }
-    h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; line-height: 1.2; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg); background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(0,0,0,0.03) 27px, rgba(0,0,0,0.03) 28px); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
+    a { color: inherit; text-decoration: none; }
+    h1, h2, h3 { font-family: 'Instrument Serif', serif; font-weight: 400; line-height: 1.2; }
     strong, b { font-weight: 500; }
 
     .content { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
-    .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 500; margin-bottom: 0.75rem; }
+    .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 500; margin-bottom: 0.75rem; }
     .content h1 { font-size: 40px; margin: 0 0 1.5rem; }
     .content p { color: var(--text-secondary); margin-bottom: 1rem; max-width: 620px; }
 
@@ -44,38 +45,38 @@ import Nav from '../components/Nav.astro';
 
     .pull-quote {
       border-left: 2px solid var(--border); padding-left: 1.25rem;
-      margin: 2rem 0; font-family: 'Cormorant Garamond', serif;
+      margin: 2rem 0; font-family: 'Instrument Serif', serif;
       font-style: italic; font-size: 22px; color: var(--text); line-height: 1.5;
     }
 
     /* Timeline */
     .timeline-section { margin-top: 3rem; }
-    .timeline-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 500; margin-bottom: 1.5rem; }
+    .timeline-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 500; margin-bottom: 1.5rem; }
     .timeline { position: relative; padding-left: 1.5rem; }
     .timeline::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 1px; background: var(--border); }
     .timeline-item { position: relative; margin-bottom: 2rem; }
     .timeline-item::before {
       content: ''; position: absolute; left: -1.5rem; top: 7px;
       width: 10px; height: 10px; border-radius: 50%;
-      background: var(--accent-light); border: 1.5px solid var(--accent);
+      background: rgba(166,209,255,0.4); border: 1.5px solid #a6d1ff;
     }
-    .timeline-item.current::before { background: var(--accent); }
+    .timeline-item.current::before { background: #a6d1ff; }
 
     .timeline-header { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
     .company-logo {
       width: 32px; height: 32px; border-radius: 6px;
       background: var(--accent-light); border: 1px solid var(--border);
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 600; color: var(--accent);
-      flex-shrink: 0; font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 600; color: var(--text-secondary);
+      flex-shrink: 0; font-family: 'Inter', sans-serif;
     }
     .timeline-meta { flex: 1; }
     .timeline-period { font-size: 11px; color: var(--text-muted); }
     .timeline-role { font-size: 14px; font-weight: 500; color: var(--text); }
-    .timeline-company { font-size: 13px; color: var(--accent); margin-bottom: 0.25rem; }
+    .timeline-company { font-size: 13px; color: #555555; margin-bottom: 0.25rem; }
     .timeline-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.35rem; }
     .timeline-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-    .timeline-tag { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: var(--accent-light); border: 1px solid var(--border); color: var(--text-secondary); }
+    .timeline-tag { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: var(--accent-light); border: 1px solid rgba(166,209,255,0.5); color: var(--text-secondary); }
 
     /* Sources */
     .sources-section { margin-top: 3rem; }
@@ -85,14 +86,14 @@ import Nav from '../components/Nav.astro';
     .source-desc { font-size: 13px; color: var(--text-secondary); }
 
     /* CTA */
-    .cta-box { background: var(--accent-light); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 3rem; text-align: center; }
+    .cta-box { background: var(--accent-light); border: 1px solid rgba(166,209,255,0.4); border-radius: 12px; padding: 1.5rem; margin-top: 3rem; text-align: center; }
     .cta-bold { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 0.4rem; }
     .cta-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; }
-    .cta-btn { display: inline-block; padding: 8px 22px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 500; }
+    .cta-btn { display: inline-block; padding: 8px 22px; border-radius: 999px; background: #0a0a0a; color: #ffffff; font-size: 14px; font-weight: 500; text-decoration: none; }
 
     /* Signature */
     .signature { margin-top: 2.5rem; }
-    .sig-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--text); margin-bottom: 0.2rem; }
+    .sig-name { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text); margin-bottom: 0.2rem; }
     .sig-role { font-size: 13px; color: var(--text-muted); }
 
     footer { border-top: 0.5px solid var(--border); text-align: center; padding: 1.5rem; font-size: 13px; color: var(--text-muted); }

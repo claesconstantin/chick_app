@@ -32,8 +32,8 @@ const { postsJson } = Astro.props;
     height: 320px;
     border-radius: 12px;
     overflow: hidden;
-    background: rgba(255,255,255,0.45);
-    border: 1px solid rgba(29,52,97,0.2);
+    background: rgba(166,209,255,0.08);
+    border: 1px solid rgba(0,0,0,0.07);
   }
   #cg-canvas {
     position: absolute; top: 0; left: 0;
@@ -42,16 +42,16 @@ const { postsJson } = Astro.props;
   .cg-hint {
     position: absolute; bottom: 8px; left: 50%;
     transform: translateX(-50%);
-    font-family: 'DM Sans', sans-serif; font-size: 10px;
-    color: #BB8588; pointer-events: none; white-space: nowrap;
+    font-family: 'Inter', sans-serif; font-size: 10px;
+    color: #888888; pointer-events: none; white-space: nowrap;
     transition: opacity 0.3s;
   }
   /* Panel */
   .cg-panel {
     position: absolute; top: 0; right: 0;
     width: 230px; height: 100%;
-    background: rgba(245,221,114,0.97);
-    border-left: 1px solid rgba(29,52,97,0.2);
+    background: rgba(255,255,255,0.98);
+    border-left: 1px solid rgba(0,0,0,0.07);
     border-radius: 0 12px 12px 0;
     display: flex; flex-direction: column;
     padding: 14px 14px 10px;
@@ -64,43 +64,43 @@ const { postsJson } = Astro.props;
     display: flex; align-items: flex-start;
     justify-content: space-between; gap: 8px;
     margin-bottom: 12px;
-    border-bottom: 0.5px solid rgba(29,52,97,0.2); padding-bottom: 10px;
+    border-bottom: 0.5px solid rgba(0,0,0,0.07); padding-bottom: 10px;
   }
   .cg-panel-cat {
-    font-family: 'DM Sans', sans-serif; font-size: 10px;
+    font-family: 'Inter', sans-serif; font-size: 10px;
     text-transform: uppercase; letter-spacing: 0.06em;
-    color: #247BA0; margin-bottom: 2px;
+    color: #888888; margin-bottom: 2px;
   }
   .cg-panel-title {
-    font-family: 'Cormorant Garamond', serif; font-size: 18px;
-    color: #1D3461; line-height: 1.2;
+    font-family: 'Instrument Serif', serif; font-size: 18px;
+    color: #0a0a0a; line-height: 1.2;
   }
   .cg-panel-close {
     background: none; border: none; font-size: 18px;
-    color: #BB8588; cursor: pointer; padding: 0; line-height: 1;
+    color: #888888; cursor: pointer; padding: 0; line-height: 1;
     flex-shrink: 0; margin-top: -2px;
   }
-  .cg-panel-close:hover { color: #1D3461; }
+  .cg-panel-close:hover { color: #0a0a0a; }
   .cg-panel-articles { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
   .cg-article {
     display: block; padding: 8px 10px; border-radius: 8px;
-    border: 1px solid rgba(29,52,97,0.2); background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(0,0,0,0.07); background: rgba(255,255,255,0.9);
     text-decoration: none; transition: background 0.12s, border-color 0.12s;
   }
-  .cg-article:hover { background: rgba(36,123,160,0.12); border-color: #247BA0; }
+  .cg-article:hover { background: rgba(166,209,255,0.15); border-color: rgba(166,209,255,0.6); }
   .cg-article-title {
-    font-family: 'DM Sans', sans-serif; font-size: 12px;
-    font-weight: 500; color: #1D3461; margin-bottom: 4px; line-height: 1.4;
+    font-family: 'Inter', sans-serif; font-size: 12px;
+    font-weight: 500; color: #0a0a0a; margin-bottom: 4px; line-height: 1.4;
   }
   .cg-article-meta { display: flex; align-items: center; gap: 6px; }
   .cg-article-cat {
     font-size: 9px; padding: 1px 7px; border-radius: 999px;
-    background: rgba(36,123,160,0.12); border: 1px solid rgba(29,52,97,0.2); color: #1F487E;
+    background: rgba(166,209,255,0.2); border: 1px solid rgba(166,209,255,0.4); color: #555555;
   }
-  .cg-article-time { font-size: 10px; color: #BB8588; }
+  .cg-article-time { font-size: 10px; color: #888888; }
   .cg-no-articles {
-    font-family: 'DM Sans', sans-serif; font-size: 12px;
-    color: #BB8588; font-style: italic; padding: 4px 0;
+    font-family: 'Inter', sans-serif; font-size: 12px;
+    color: #888888; font-style: italic; padding: 4px 0;
   }
 </style>
 
@@ -119,9 +119,9 @@ const { postsJson } = Astro.props;
     tools: '🛠️ Tools', career: '💼 Career', 'soft-skills': '🤝 Soft Skills',
   };
   const CAT_COLORS: Record<string, string> = {
-    mindset: '#247BA0', frameworks: '#BB8588',
-    career: '#1D3461', 'soft-skills': '#247BA0',
-    tools: '#1F487E',
+    mindset: '#a6d1ff', frameworks: '#e3dff2',
+    career: '#daf1de', 'soft-skills': '#a6d1ff',
+    tools: '#e3dff2',
   };
 
   // ── Canvas setup ──────────────────────────────────────
@@ -227,7 +227,7 @@ const { postsJson } = Astro.props;
 
   // ── Physics ───────────────────────────────────────────
   function measureNodes() {
-    ctx.font = '11px DM Sans, sans-serif';
+    ctx.font = '11px Inter, sans-serif';
     NODES.forEach(n => { n.w = Math.max(56, ctx.measureText(n.label).width + 24); });
   }
   function initPositions() {
@@ -288,24 +288,24 @@ const { postsJson } = Astro.props;
     EDGES.forEach(([i,j]) => {
       const a = NODES[i], b = NODES[j];
       ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
-      ctx.strokeStyle = 'rgba(29,52,97,0.15)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1; ctx.stroke();
     });
     NODES.forEach(n => {
       const hov = n === hoveredNode;
-      const color = CAT_COLORS[n.cat] || '#B8A88A';
+      const color = CAT_COLORS[n.cat] || '#a6d1ff';
       pill(n.x-n.w/2, n.y-n.h/2, n.w, n.h);
-      ctx.fillStyle = hov ? 'rgba(36,123,160,0.15)' : 'rgba(255,255,255,0.7)'; ctx.fill();
-      ctx.strokeStyle = hov ? '#247BA0' : color;
+      ctx.fillStyle = hov ? 'rgba(166,209,255,0.2)' : 'rgba(255,255,255,0.9)'; ctx.fill();
+      ctx.strokeStyle = hov ? 'rgba(166,209,255,0.8)' : color;
       ctx.lineWidth = hov ? 2 : 1; ctx.stroke();
-      ctx.fillStyle = '#1D3461';
-      ctx.font = `${n.article ? '500' : '400'} 11px 'DM Sans', sans-serif`;
+      ctx.fillStyle = '#0a0a0a';
+      ctx.font = `${n.article ? '500' : '400'} 11px 'Inter', sans-serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(n.label, n.x, n.y);
       if (n.article) {
         const tw = ctx.measureText(n.label).width;
         ctx.beginPath();
         ctx.moveTo(n.x-tw/2, n.y+7); ctx.lineTo(n.x+tw/2, n.y+7);
-        ctx.strokeStyle = hov ? '#247BA0' : color; ctx.lineWidth = 0.8; ctx.stroke();
+        ctx.strokeStyle = hov ? 'rgba(166,209,255,0.8)' : color; ctx.lineWidth = 0.8; ctx.stroke();
       }
     });
   }
