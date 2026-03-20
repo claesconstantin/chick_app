@@ -1,19 +1,27 @@
 ---
 import { getCollection } from 'astro:content';
 import ConceptGraph from '../components/ConceptGraph.astro';
+import Nav from '../components/Nav.astro';
 
 const posts = await getCollection('blog');
 const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const categoryLabels: Record<string, string> = {
   mindset: '🧠 Mindset',
-  frameworks: '🗺️ Frameworks & GTM',
+  frameworks: '🗺️ Frameworks',
   tools: '🛠️ Tools & Tech',
   career: '💼 Career',
   'soft-skills': '🤝 Soft Skills',
 };
 
-const base = '';
+const searchData = sortedPosts.map(p => ({
+  id: p.id,
+  title: p.data.title,
+  description: p.data.description,
+  category: p.data.category,
+  tags: p.data.tags,
+  readTime: p.data.readTime,
+}));
 ---
 
 <!doctype html>
@@ -39,271 +47,143 @@ const base = '';
       --border: #E8D5A3;
       --search-bg: #FAF7F0;
     }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 0;
-      font-size: 15px;
-      line-height: 1.7;
-    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
     a { color: var(--accent); text-decoration: none; }
-    h1, h2, h3 {
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 500;
-      line-height: 1.2;
-    }
+    h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; line-height: 1.2; }
     strong, b { font-weight: 500; }
-
-    /* Nav */
-    nav {
-      border-bottom: 0.5px solid var(--border);
-      padding: 0 1.5rem;
-    }
-    .nav-inner {
-      max-width: 720px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 56px;
-    }
-    .nav-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 18px;
-      color: var(--text);
-      font-weight: 500;
-    }
-    .nav-right { display: flex; gap: 0.5rem; align-items: center; position: relative; }
-    .btn-pill {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      padding: 5px 14px;
-      border-radius: 999px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--accent-light);
-      color: var(--text);
-      text-decoration: none;
-    }
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-    }
-    .dropdown-wrapper { position: relative; }
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: calc(100% + 6px);
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 6px;
-      min-width: 190px;
-      z-index: 100;
-      box-shadow: 0 4px 16px rgba(44,36,22,0.08);
-    }
-    .dropdown-menu.open { display: block; }
-    .dropdown-menu a {
-      display: block;
-      padding: 7px 12px;
-      font-size: 13px;
-      color: var(--text);
-      border-radius: 6px;
-    }
-    .dropdown-menu a:hover { background: var(--accent-light); }
-
-    /* Sections */
-    .section { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
 
     /* Hero */
     .hero { padding: 3rem 1.5rem 2rem; max-width: 720px; margin: 0 auto; }
     .pill-tag {
-      display: inline-block;
-      font-size: 11px;
-      background: var(--accent-light);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      border-radius: 999px;
-      padding: 3px 12px;
-      margin-bottom: 1rem;
-      letter-spacing: 0.02em;
+      display: inline-block; font-size: 11px;
+      background: var(--accent-light); border: 1px solid var(--border);
+      color: var(--text-secondary); border-radius: 999px;
+      padding: 3px 12px; margin-bottom: 1rem; letter-spacing: 0.02em;
     }
-    .hero h1 {
-      font-size: 48px;
-      margin: 0 0 0.4rem;
-      color: var(--text);
-    }
-    .hero-sub {
-      font-size: 15px;
-      color: var(--text-secondary);
-      margin: 0 0 1.5rem;
-    }
+    .hero h1 { font-size: 48px; margin: 0 0 0.4rem; color: var(--text); }
+    .hero-sub { font-size: 15px; color: var(--text-secondary); margin: 0 0 1.5rem; font-style: italic; }
+
+    /* Search */
+    .search-wrap { position: relative; margin-bottom: 1.5rem; }
     .search-bar {
-      width: 100%;
-      padding: 10px 18px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: var(--search-bg);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      color: var(--text);
-      outline: none;
-      margin-bottom: 1.5rem;
+      width: 100%; padding: 10px 18px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--search-bg);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); outline: none;
     }
     .search-bar::placeholder { color: var(--text-muted); }
     .search-bar:focus { border-color: var(--accent); }
+    .search-results {
+      display: none;
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 6px; z-index: 50; box-shadow: 0 4px 20px rgba(44,36,22,0.1);
+    }
+    .search-result {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 8px 10px; border-radius: 8px; text-decoration: none; color: var(--text);
+    }
+    .search-result:hover { background: var(--accent-light); }
+    .sr-cat {
+      font-size: 10px; padding: 2px 8px; border-radius: 999px;
+      background: var(--accent-light); border: 1px solid var(--border);
+      color: var(--text-secondary); white-space: nowrap; flex-shrink: 0;
+    }
+    .sr-title { flex: 1; font-size: 13px; }
+    .sr-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .search-empty { padding: 10px 12px; font-size: 13px; color: var(--text-muted); }
 
     /* Timer */
-    .timer-widget {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      margin-bottom: 0.5rem;
-    }
+    .timer-zone { margin-bottom: 0.5rem; }
+    .timer-top { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
     .timer-label { font-size: 14px; color: var(--text-secondary); }
-    .timer-presets { display: flex; gap: 6px; }
+    .timer-presets { display: flex; gap: 6px; flex-wrap: wrap; }
     .preset-btn {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      padding: 4px 12px; border-radius: 999px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-secondary); cursor: pointer; transition: all 0.12s;
     }
     .preset-btn.active, .preset-btn:hover {
-      background: var(--accent-light);
-      border-color: var(--accent);
-      color: var(--text);
+      background: var(--accent-light); border-color: var(--accent); color: var(--text);
     }
+    .preset-btn.custom-btn { font-style: italic; }
+    .timer-custom-row {
+      display: none; align-items: center; gap: 8px;
+      margin-bottom: 0.5rem;
+    }
+    .custom-input {
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      padding: 4px 12px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--search-bg);
+      color: var(--text); outline: none; width: 90px;
+    }
+    .custom-input:focus { border-color: var(--accent); }
+    .custom-set {
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      padding: 4px 14px; border-radius: 999px;
+      border: 1px solid var(--accent); background: var(--accent-light);
+      color: var(--text); cursor: pointer;
+    }
+    .timer-bottom { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.25rem; }
     .timer-display {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      color: var(--accent);
-      min-width: 60px;
-      text-align: center;
+      font-family: 'Cormorant Garamond', serif; font-size: 32px;
+      color: var(--accent); min-width: 80px;
     }
-    .timer-note {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin: 0 0 2.5rem;
+    .timer-start-stop {
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      padding: 5px 16px; border-radius: 999px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-secondary); cursor: pointer; transition: all 0.12s;
+    }
+    .timer-start-stop:hover { background: var(--accent-light); border-color: var(--accent); color: var(--text); }
+    .timer-start-stop.running { border-color: var(--accent); color: var(--accent); }
+    .timer-note { font-size: 12px; color: var(--text-muted); margin: 0 0 2.5rem; }
+    .notif-btn {
+      font-size: 11px; color: var(--text-muted); background: none; border: none;
+      cursor: pointer; text-decoration: underline; padding: 0; display: none;
     }
 
     /* Section labels */
     .section-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent);
-      font-weight: 500;
-      margin-bottom: 1rem;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--accent); font-weight: 500; margin-bottom: 1rem;
     }
 
     /* Concept map */
     .concept-section { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
-    .concept-container {
-      background: var(--accent-light);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-    }
-    .concept-nodes {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-    .concept-node {
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-    }
-    .concept-coming {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-style: italic;
-    }
 
     /* Categories grid */
     .categories-section { padding: 0 1.5rem 2rem; max-width: 720px; margin: 0 auto; }
-    .categories-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.75rem;
-    }
+    .categories-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
     .category-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem; text-decoration: none;
+      display: block; transition: border-color 0.12s, background 0.12s;
     }
-    .category-card.dashed {
-      border-style: dashed;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .category-card:hover { background: var(--accent-light); border-color: var(--accent); }
+    .category-card.dashed { border-style: dashed; display: flex; align-items: center; justify-content: center; }
     .category-emoji { font-size: 20px; margin-bottom: 0.25rem; }
-    .category-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 0.15rem;
-    }
+    .category-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 0.15rem; }
     .category-sub { font-size: 11px; color: var(--text-muted); }
     .category-coming { font-size: 12px; color: var(--text-muted); text-align: center; }
 
     /* Articles list */
     .articles-section { padding: 0 1.5rem 3rem; max-width: 720px; margin: 0 auto; }
     .article-row {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.85rem 0;
-      border-bottom: 0.5px solid var(--border);
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.85rem 0; border-bottom: 0.5px solid var(--border);
     }
     .article-row:first-child { border-top: 0.5px solid var(--border); }
     .cat-pill {
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 999px;
-      background: var(--accent-light);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      white-space: nowrap;
-      flex-shrink: 0;
+      font-size: 11px; padding: 3px 10px; border-radius: 999px;
+      background: var(--accent-light); border: 1px solid var(--border);
+      color: var(--text-secondary); white-space: nowrap; flex-shrink: 0;
     }
-    .article-title {
-      flex: 1;
-      font-size: 14px;
-      color: var(--text);
-    }
+    .article-title { flex: 1; font-size: 14px; color: var(--text); }
     .article-title:hover { color: var(--accent); }
-    .read-time {
-      font-size: 12px;
-      color: var(--text-muted);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+    .read-time { font-size: 12px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
 
-    /* Footer */
-    footer {
-      border-top: 0.5px solid var(--border);
-      text-align: center;
-      padding: 1.5rem;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
+    footer { border-top: 0.5px solid var(--border); text-align: center; padding: 1.5rem; font-size: 13px; color: var(--text-muted); }
 
     @media (max-width: 600px) {
       .hero h1 { font-size: 36px; }
@@ -313,43 +193,45 @@ const base = '';
 </head>
 <body>
 
-<!-- Nav -->
-<nav>
-  <div class="nav-inner">
-    <a href={`${base}/`} class="nav-logo">🐣 Chickentrepreneur</a>
-    <div class="nav-right">
-      <a href={`${base}/about`} class="btn-pill">About</a>
-      <div class="dropdown-wrapper">
-        <button class="btn-pill btn-ghost" id="learn-btn">Learn ↓</button>
-        <div class="dropdown-menu" id="learn-dropdown">
-          <a href={`${base}/`}>🧠 Mindset</a>
-          <a href={`${base}/`}>🗺️ Frameworks & GTM</a>
-          <a href={`${base}/`}>🛠️ Tools & Tech</a>
-          <a href={`${base}/`}>💼 Career</a>
-          <a href={`${base}/`}>🤝 Soft Skills</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
+<Nav />
 
 <!-- Hero -->
 <div class="hero">
   <span class="pill-tag">Twice a month · Pure signal</span>
-  <h1>Learn more than you earn.</h1>
-  <p class="hero-sub">Fresh eyes on the startup world, seen from the inside.</p>
-  <input class="search-bar" type="text" placeholder="What do you want to learn today?" />
-  <div class="timer-widget">
-    <span class="timer-label">I have</span>
-    <div class="timer-presets">
-      <button class="preset-btn" data-mins="5">5 min</button>
-      <button class="preset-btn active" data-mins="10">10 min</button>
-      <button class="preset-btn" data-mins="20">20 min</button>
-    </div>
-    <span class="timer-label">to learn</span>
-    <span class="timer-display" id="timer-display">10:00</span>
+  <h1>Fresh eyes on the startup world, seen from the inside.</h1>
+  <p class="hero-sub">Learn more than you earn.</p>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <input class="search-bar" id="search-input" type="text" placeholder="What do you want to learn today?" autocomplete="off" />
+    <div class="search-results" id="search-results"></div>
   </div>
-  <p class="timer-note">1 minute of reading = 1 minute of learning.</p>
+
+  <!-- Timer -->
+  <div class="timer-zone">
+    <div class="timer-top">
+      <span class="timer-label">I have</span>
+      <div class="timer-presets">
+        <button class="preset-btn" data-mins="5">5 min</button>
+        <button class="preset-btn active" data-mins="10">10 min</button>
+        <button class="preset-btn" data-mins="20">20 min</button>
+        <button class="preset-btn custom-btn" id="custom-toggle">custom</button>
+      </div>
+      <span class="timer-label">to learn</span>
+    </div>
+    <div class="timer-custom-row" id="custom-row">
+      <input class="custom-input" id="custom-input" type="number" min="1" max="180" step="0.5" placeholder="minutes" />
+      <button class="custom-set" id="custom-set">Set</button>
+    </div>
+    <div class="timer-bottom">
+      <span class="timer-display" id="timer-display">10:00</span>
+      <button class="timer-start-stop" id="timer-start-stop">▶ Start</button>
+    </div>
+  </div>
+  <p class="timer-note">
+    1 minute of reading = 1 minute of learning.
+    <button class="notif-btn" id="notif-btn">Enable notifications 🔔</button>
+  </p>
 </div>
 
 <!-- Concept map -->
@@ -362,31 +244,31 @@ const base = '';
 <div class="categories-section">
   <p class="section-label">Explore by category</p>
   <div class="categories-grid">
-    <div class="category-card">
+    <a href="/category/mindset" class="category-card">
       <div class="category-emoji">🧠</div>
-      <div class="category-name">Mindset</div>
-      <div class="category-sub">Psychology · Philosophy</div>
-    </div>
-    <div class="category-card">
+      <div class="category-name">Mindset & Soft Skills</div>
+      <div class="category-sub">Psychology · Leadership</div>
+    </a>
+    <a href="/category/frameworks" class="category-card">
       <div class="category-emoji">🗺️</div>
-      <div class="category-name">Frameworks & GTM</div>
+      <div class="category-name">Frameworks</div>
       <div class="category-sub">Mental models · Growth</div>
-    </div>
-    <div class="category-card">
+    </a>
+    <a href="/category/gtm" class="category-card">
+      <div class="category-emoji">📈</div>
+      <div class="category-name">GTM</div>
+      <div class="category-sub">Go-to-market · Sales</div>
+    </a>
+    <a href="/category/tools" class="category-card">
       <div class="category-emoji">🛠️</div>
       <div class="category-name">Tools & Tech</div>
       <div class="category-sub">Stack · Productivity</div>
-    </div>
-    <div class="category-card">
+    </a>
+    <a href="/category/career" class="category-card">
       <div class="category-emoji">💼</div>
       <div class="category-name">Career</div>
       <div class="category-sub">Equity · Salary · Path</div>
-    </div>
-    <div class="category-card">
-      <div class="category-emoji">🤝</div>
-      <div class="category-name">Soft Skills</div>
-      <div class="category-sub">Communication · Leadership</div>
-    </div>
+    </a>
     <div class="category-card dashed">
       <p class="category-coming">More coming every week</p>
     </div>
@@ -397,7 +279,7 @@ const base = '';
 <div class="articles-section">
   <p class="section-label">Latest articles</p>
   {sortedPosts.map((post) => (
-    <a href={`${base}/blog/${post.id}`} class="article-row" style="display:flex;text-decoration:none;">
+    <a href={`/blog/${post.id}`} class="article-row" style="display:flex;text-decoration:none;">
       <span class="cat-pill">{categoryLabels[post.data.category] ?? post.data.category}</span>
       <span class="article-title">{post.data.title}</span>
       <span class="read-time">{post.data.readTime} min read</span>
@@ -405,58 +287,175 @@ const base = '';
   ))}
 </div>
 
-<!-- Footer -->
-<footer>
-  🐣 Chickentrepreneur · by Constantin Claes · Twice a month
-</footer>
+<footer>🐣 Chickentrepreneur · by Constantin Claes · Twice a month</footer>
+
+<!-- Pass posts to client -->
+<script type="application/json" id="posts-data" set:text={JSON.stringify(searchData)}></script>
 
 <script>
-  // Dropdown toggle
-  const learnBtn = document.getElementById('learn-btn');
-  const learnDropdown = document.getElementById('learn-dropdown');
-  learnBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    learnDropdown?.classList.toggle('open');
-  });
-  document.addEventListener('click', () => {
-    learnDropdown?.classList.remove('open');
+  // ── Search ──────────────────────────────────────────────
+  const CAT_LABELS: Record<string, string> = {
+    mindset: '🧠 Mindset', frameworks: '🗺️ Frameworks',
+    tools: '🛠️ Tools', career: '💼 Career', 'soft-skills': '🤝 Soft Skills',
+  };
+
+  const POSTS: { id: string; title: string; description: string; category: string; tags: string[]; readTime: number }[] =
+    JSON.parse((document.getElementById('posts-data') as HTMLScriptElement).text);
+
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  const searchResults = document.getElementById('search-results') as HTMLDivElement;
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if (q.length < 2) { searchResults.style.display = 'none'; return; }
+
+    const matches = POSTS.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.tags.some(t => t.toLowerCase().includes(q))
+    ).slice(0, 5);
+
+    if (matches.length === 0) {
+      searchResults.innerHTML = '<div class="search-empty">No results found.</div>';
+    } else {
+      searchResults.innerHTML = matches.map(p =>
+        `<a href="/blog/${p.id}" class="search-result">
+          <span class="sr-cat">${CAT_LABELS[p.category] ?? p.category}</span>
+          <span class="sr-title">${p.title}</span>
+          <span class="sr-time">${p.readTime} min</span>
+        </a>`
+      ).join('');
+    }
+    searchResults.style.display = 'block';
   });
 
-  // Timer
-  let selectedMins = 10;
-  let timeLeft = selectedMins * 60;
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target as Node) && !searchResults.contains(e.target as Node)) {
+      searchResults.style.display = 'none';
+    }
+  });
+
+  // ── Timer ───────────────────────────────────────────────
+  let timeLeft = 10 * 60;
+  let timerRunning = false;
   let interval: ReturnType<typeof setInterval> | null = null;
-  const display = document.getElementById('timer-display');
 
-  function formatTime(secs: number): string {
+  const display = document.getElementById('timer-display') as HTMLElement;
+  const startStopBtn = document.getElementById('timer-start-stop') as HTMLButtonElement;
+  const customToggle = document.getElementById('custom-toggle') as HTMLButtonElement;
+  const customRow = document.getElementById('custom-row') as HTMLDivElement;
+  const customInput = document.getElementById('custom-input') as HTMLInputElement;
+  const customSet = document.getElementById('custom-set') as HTMLButtonElement;
+  const notifBtn = document.getElementById('notif-btn') as HTMLButtonElement;
+
+  function fmt(secs: number): string {
     const m = Math.floor(secs / 60).toString().padStart(2, '0');
     const s = (secs % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   }
 
-  function startTimer() {
-    if (interval) clearInterval(interval);
-    interval = setInterval(() => {
-      if (timeLeft > 0) {
-        timeLeft--;
-        if (display) display.textContent = formatTime(timeLeft);
-      } else {
-        if (interval) clearInterval(interval);
-      }
-    }, 1000);
+  function playBeep() {
+    try {
+      const ac = new AudioContext();
+      [0, 0.3, 0.6].forEach((delay, i) => {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.connect(gain); gain.connect(ac.destination);
+        osc.frequency.value = i === 2 ? 880 : 660;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0, ac.currentTime + delay);
+        gain.gain.linearRampToValueAtTime(0.35, ac.currentTime + delay + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + delay + 0.8);
+        osc.start(ac.currentTime + delay);
+        osc.stop(ac.currentTime + delay + 0.8);
+      });
+    } catch (_) {}
   }
 
-  document.querySelectorAll('.preset-btn').forEach((btn) => {
+  function onFinish() {
+    timerRunning = false;
+    if (interval) clearInterval(interval);
+    startStopBtn.textContent = '▶ Start';
+    startStopBtn.classList.remove('running');
+    display.textContent = '00:00';
+    playBeep();
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('🐣 Session complete!', {
+        body: 'You finished your learning session.',
+        icon: '/favicon.svg',
+      });
+    }
+  }
+
+  function toggleTimer() {
+    if (timerRunning) {
+      clearInterval(interval);
+      timerRunning = false;
+      startStopBtn.textContent = '▶ Start';
+      startStopBtn.classList.remove('running');
+    } else {
+      if (timeLeft <= 0) timeLeft = 10 * 60;
+      timerRunning = true;
+      startStopBtn.textContent = '⏸ Pause';
+      startStopBtn.classList.add('running');
+      interval = setInterval(() => {
+        timeLeft--;
+        display.textContent = fmt(timeLeft);
+        if (timeLeft <= 0) onFinish();
+      }, 1000);
+    }
+  }
+
+  startStopBtn.addEventListener('click', toggleTimer);
+
+  document.querySelectorAll('.preset-btn:not(#custom-toggle)').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const mins = parseInt((btn as HTMLElement).dataset.mins ?? '10');
-      selectedMins = mins;
-      timeLeft = mins * 60;
-      if (display) display.textContent = formatTime(timeLeft);
-      startTimer();
+      const mins = parseFloat((btn as HTMLElement).dataset.mins ?? '10');
+      timeLeft = Math.round(mins * 60);
+      display.textContent = fmt(timeLeft);
+      if (interval) clearInterval(interval);
+      timerRunning = false;
+      startStopBtn.textContent = '▶ Start';
+      startStopBtn.classList.remove('running');
+      customRow.style.display = 'none';
     });
   });
+
+  customToggle.addEventListener('click', () => {
+    const open = customRow.style.display === 'flex';
+    customRow.style.display = open ? 'none' : 'flex';
+    if (!open) customInput.focus();
+  });
+
+  function applyCustom() {
+    const val = parseFloat(customInput.value);
+    if (!isNaN(val) && val > 0) {
+      timeLeft = Math.round(val * 60);
+      display.textContent = fmt(timeLeft);
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      customToggle.classList.add('active');
+      customRow.style.display = 'none';
+      if (interval) clearInterval(interval);
+      timerRunning = false;
+      startStopBtn.textContent = '▶ Start';
+      startStopBtn.classList.remove('running');
+      customInput.value = '';
+    }
+  }
+
+  customSet.addEventListener('click', applyCustom);
+  customInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyCustom(); });
+
+  // Notification permission
+  if ('Notification' in window && Notification.permission !== 'granted') {
+    notifBtn.style.display = 'inline';
+    notifBtn.addEventListener('click', async () => {
+      const result = await Notification.requestPermission();
+      if (result === 'granted') notifBtn.style.display = 'none';
+    });
+  }
 </script>
 
 </body>

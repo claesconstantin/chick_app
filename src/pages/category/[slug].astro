@@ -1,0 +1,125 @@
+---
+import { getCollection } from 'astro:content';
+import Nav from '../../components/Nav.astro';
+
+export async function getStaticPaths() {
+  return [
+    {
+      params: { slug: 'mindset' },
+      props: { title: 'Mindset & Soft Skills', emoji: '🧠', desc: 'Psychology · Philosophy · Communication · Leadership', categories: ['mindset', 'soft-skills'] },
+    },
+    {
+      params: { slug: 'frameworks' },
+      props: { title: 'Frameworks', emoji: '🗺️', desc: 'Mental models · Structured thinking · Growth', categories: ['frameworks'] },
+    },
+    {
+      params: { slug: 'gtm' },
+      props: { title: 'GTM', emoji: '📈', desc: 'Go-to-market · Sales · Distribution', categories: ['frameworks'], gtmlTag: true },
+    },
+    {
+      params: { slug: 'tools' },
+      props: { title: 'Tools & Tech', emoji: '🛠️', desc: 'Stack · Productivity · AI tools', categories: ['tools'] },
+    },
+    {
+      params: { slug: 'career' },
+      props: { title: 'Career', emoji: '💼', desc: 'Equity · Salary · Startup career paths', categories: ['career'] },
+    },
+  ];
+}
+
+interface Props {
+  title: string; emoji: string; desc: string;
+  categories: string[]; gtmlTag?: boolean;
+}
+const { title, emoji, desc, categories, gtmlTag } = Astro.props;
+
+const allPosts = await getCollection('blog');
+let posts = allPosts.filter(p => categories.includes(p.data.category));
+if (gtmlTag) {
+  posts = posts.filter(p =>
+    p.data.tags.some(t => ['gtm', 'go-to-market', 'growth', 'marketing'].includes(t.toLowerCase()))
+  );
+}
+posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const categoryLabels: Record<string, string> = {
+  mindset: '🧠 Mindset', frameworks: '🗺️ Frameworks',
+  tools: '🛠️ Tools', career: '💼 Career', 'soft-skills': '🤝 Soft Skills',
+};
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — Chickentrepreneur</title>
+  <meta name="description" content={desc} />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #FDFAF4; --text: #2C2416; --text-secondary: #7A6A52;
+      --text-muted: #B8A88A; --accent: #C4995A; --accent-light: #F5EDDA; --border: #E8D5A3;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
+    a { color: var(--accent); text-decoration: none; }
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 500; line-height: 1.2; }
+
+    .page { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+
+    .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 500; margin-bottom: 0.5rem; }
+    .page h1 { font-size: 40px; margin: 0 0 0.25rem; }
+    .page-desc { font-size: 14px; color: var(--text-muted); margin: 0 0 2.5rem; }
+
+    .article-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.85rem 0; border-bottom: 0.5px solid var(--border); text-decoration: none; color: var(--text);
+    }
+    .article-row:first-child { border-top: 0.5px solid var(--border); }
+    .article-row:hover .article-title { color: var(--accent); }
+    .cat-pill {
+      font-size: 11px; padding: 3px 10px; border-radius: 999px;
+      background: var(--accent-light); border: 1px solid var(--border);
+      color: var(--text-secondary); white-space: nowrap; flex-shrink: 0;
+    }
+    .article-title { flex: 1; font-size: 14px; }
+    .read-time { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+    .empty {
+      padding: 3rem 0; text-align: center;
+      color: var(--text-muted); font-size: 14px; font-style: italic;
+    }
+
+    footer { border-top: 0.5px solid var(--border); text-align: center; padding: 1.5rem; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<Nav />
+
+<div class="page">
+  <p class="eyebrow">{emoji} {title}</p>
+  <h1>{title}</h1>
+  <p class="page-desc">{desc}</p>
+
+  {posts.length === 0 ? (
+    <div class="empty">No articles yet in this category — coming soon.</div>
+  ) : (
+    posts.map(post => (
+      <a href={`/blog/${post.id}`} class="article-row">
+        <span class="cat-pill">{categoryLabels[post.data.category] ?? post.data.category}</span>
+        <span class="article-title">{post.data.title}</span>
+        <span class="read-time">{post.data.readTime} min read</span>
+      </a>
+    ))
+  )}
+</div>
+
+<footer>🐣 Chickentrepreneur · by Constantin Claes · Twice a month</footer>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+---
+---
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">🐣 Chickentrepreneur</a>
+    <div class="nav-right">
+      <a href="/about" class="btn-pill">About</a>
+      <div class="dropdown-wrapper">
+        <button class="btn-pill btn-ghost" tabindex="0">Learn ↓</button>
+        <div class="dropdown-menu">
+          <a href="/category/mindset">🧠 Mindset & Soft Skills</a>
+          <a href="/category/frameworks">🗺️ Frameworks</a>
+          <a href="/category/gtm">📈 GTM</a>
+          <a href="/category/tools">🛠️ Tools & Tech</a>
+          <a href="/category/career">💼 Career</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<style>
+  nav {
+    border-bottom: 0.5px solid #E8D5A3;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 200;
+  }
+  .nav-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: #2C2416;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .nav-right {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .btn-pill {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1px solid #E8D5A3;
+    background: #F5EDDA;
+    color: #2C2416;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: #7A6A52;
+  }
+  .dropdown-wrapper {
+    position: relative;
+  }
+  .dropdown-menu {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s, visibility 0.12s;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #FDFAF4;
+    border: 1px solid #E8D5A3;
+    border-radius: 10px;
+    padding: 6px;
+    min-width: 200px;
+    box-shadow: 0 4px 16px rgba(44,36,22,0.08);
+  }
+  .dropdown-wrapper:hover .dropdown-menu,
+  .dropdown-wrapper:focus-within .dropdown-menu {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .dropdown-menu a {
+    display: block;
+    padding: 7px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #2C2416;
+    border-radius: 6px;
+    text-decoration: none;
+  }
+  .dropdown-menu a:hover {
+    background: #F5EDDA;
+  }
+</style>

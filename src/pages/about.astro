@@ -1,5 +1,5 @@
 ---
-const base = '';
+import Nav from '../components/Nav.astro';
 ---
 
 <!doctype html>
@@ -16,288 +16,195 @@ const base = '';
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
-      --bg: #FDFAF4;
-      --text: #2C2416;
-      --text-secondary: #7A6A52;
-      --text-muted: #B8A88A;
-      --accent: #C4995A;
-      --accent-light: #F5EDDA;
-      --border: #E8D5A3;
+      --bg: #FDFAF4; --text: #2C2416; --text-secondary: #7A6A52;
+      --text-muted: #B8A88A; --accent: #C4995A; --accent-light: #F5EDDA; --border: #E8D5A3;
     }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 0;
-      font-size: 15px;
-      line-height: 1.7;
-    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
     a { color: var(--accent); text-decoration: none; }
-    h1, h2, h3 {
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 500;
-      line-height: 1.2;
-    }
+    h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; line-height: 1.2; }
     strong, b { font-weight: 500; }
 
-    /* Nav */
-    nav { border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; }
-    .nav-inner {
-      max-width: 720px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 56px;
-    }
-    .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--text); font-weight: 500; }
-    .nav-right { display: flex; gap: 0.5rem; align-items: center; }
-    .btn-pill {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      padding: 5px 14px;
-      border-radius: 999px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--accent-light);
-      color: var(--text);
-      text-decoration: none;
-    }
-    .btn-ghost { background: transparent; color: var(--text-secondary); }
-
-    /* Content */
     .content { max-width: 720px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
-    .eyebrow {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent);
-      font-weight: 500;
-      margin-bottom: 0.75rem;
-    }
+    .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 500; margin-bottom: 0.75rem; }
     .content h1 { font-size: 40px; margin: 0 0 1.5rem; }
     .content p { color: var(--text-secondary); margin-bottom: 1rem; max-width: 620px; }
+
+    /* Why section */
+    .why-section { margin-bottom: 2.5rem; }
+    .why-section h2 { font-size: 28px; color: var(--text); margin: 0 0 1rem; }
+
     .pull-quote {
-      border-left: 2px solid var(--border);
-      padding-left: 1.25rem;
-      margin: 2rem 0;
-      font-family: 'Cormorant Garamond', serif;
-      font-style: italic;
-      font-size: 22px;
-      color: var(--text);
-      line-height: 1.5;
+      border-left: 2px solid var(--border); padding-left: 1.25rem;
+      margin: 2rem 0; font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 22px; color: var(--text); line-height: 1.5;
     }
 
     /* Timeline */
     .timeline-section { margin-top: 3rem; }
-    .timeline-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent);
-      font-weight: 500;
-      margin-bottom: 1.5rem;
-    }
+    .timeline-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 500; margin-bottom: 1.5rem; }
     .timeline { position: relative; padding-left: 1.5rem; }
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: 5px;
-      top: 8px;
-      bottom: 8px;
-      width: 1px;
-      background: var(--border);
-    }
+    .timeline::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 1px; background: var(--border); }
     .timeline-item { position: relative; margin-bottom: 2rem; }
     .timeline-item::before {
-      content: '';
-      position: absolute;
-      left: -1.5rem;
-      top: 7px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--accent-light);
-      border: 1.5px solid var(--accent);
+      content: ''; position: absolute; left: -1.5rem; top: 7px;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent-light); border: 1.5px solid var(--accent);
     }
-    .timeline-period { font-size: 11px; color: var(--text-muted); margin-bottom: 0.2rem; }
+    .timeline-item.current::before { background: var(--accent); }
+
+    .timeline-header { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+    .company-logo {
+      width: 32px; height: 32px; border-radius: 6px;
+      background: var(--accent-light); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: var(--accent);
+      flex-shrink: 0; font-family: 'DM Sans', sans-serif;
+    }
+    .timeline-meta { flex: 1; }
+    .timeline-period { font-size: 11px; color: var(--text-muted); }
     .timeline-role { font-size: 14px; font-weight: 500; color: var(--text); }
     .timeline-company { font-size: 13px; color: var(--accent); margin-bottom: 0.25rem; }
     .timeline-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.35rem; }
     .timeline-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-    .timeline-tag {
-      font-size: 11px;
-      padding: 2px 9px;
-      border-radius: 999px;
-      background: var(--accent-light);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-    }
+    .timeline-tag { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: var(--accent-light); border: 1px solid var(--border); color: var(--text-secondary); }
 
     /* Sources */
     .sources-section { margin-top: 3rem; }
-    .sources-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    .source-card {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem 1.25rem;
-    }
+    .sources-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+    .source-card { border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
     .source-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
     .source-desc { font-size: 13px; color: var(--text-secondary); }
 
     /* CTA */
-    .cta-box {
-      background: var(--accent-light);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-top: 3rem;
-      text-align: center;
-    }
+    .cta-box { background: var(--accent-light); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 3rem; text-align: center; }
     .cta-bold { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 0.4rem; }
     .cta-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; }
-    .cta-btn {
-      display: inline-block;
-      padding: 8px 22px;
-      border-radius: 999px;
-      background: var(--accent);
-      color: #FAF7F0;
-      font-size: 14px;
-      font-weight: 500;
-      text-decoration: none;
-    }
+    .cta-btn { display: inline-block; padding: 8px 22px; border-radius: 999px; background: var(--accent); color: #FAF7F0; font-size: 14px; font-weight: 500; }
 
     /* Signature */
     .signature { margin-top: 2.5rem; }
-    .sig-name {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 20px;
-      color: var(--text);
-      margin-bottom: 0.2rem;
-    }
+    .sig-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--text); margin-bottom: 0.2rem; }
     .sig-role { font-size: 13px; color: var(--text-muted); }
 
-    /* Footer */
-    footer {
-      border-top: 0.5px solid var(--border);
-      text-align: center;
-      padding: 1.5rem;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    @media (max-width: 600px) {
-      .sources-grid { grid-template-columns: 1fr; }
-      .content h1 { font-size: 32px; }
-    }
+    footer { border-top: 0.5px solid var(--border); text-align: center; padding: 1.5rem; font-size: 13px; color: var(--text-muted); }
+    @media (max-width: 600px) { .sources-grid { grid-template-columns: 1fr; } .content h1 { font-size: 32px; } }
   </style>
 </head>
 <body>
 
-<!-- Nav -->
-<nav>
-  <div class="nav-inner">
-    <a href={`${base}/`} class="nav-logo">🐣 Chickentrepreneur</a>
-    <div class="nav-right">
-      <a href={`${base}/about`} class="btn-pill">About</a>
-      <a href={`${base}/`} class="btn-pill btn-ghost">Learn ↓</a>
-    </div>
-  </div>
-</nav>
+<Nav />
 
-<!-- Content -->
 <div class="content">
   <p class="eyebrow">About</p>
   <h1>Why I'm doing this.</h1>
 
-  <p>People keep asking me the same questions. How do you get into a startup? What should I expect? Is it worth leaving corporate? What does equity actually mean?</p>
-  <p>I don't have all the answers. But I've been living it, and I keep notes.</p>
-  <p>Most of what I share feels obvious to me now. It wasn't six months ago. That's exactly why it's worth writing down.</p>
+  <!-- Why Chickentrepreneur -->
+  <div class="why-section">
+    <p>People keep asking me the same questions. How do you get into a startup? What should I expect? Is it worth leaving corporate? What does equity actually mean?</p>
+    <p>I don't have all the answers. But I've been living it, and I keep notes.</p>
+    <p>The name says it all. A <strong>chicken</strong> — not fully hatched, still figuring it out — trying to build something worth building. The <strong>entrepreneur</strong> part is the direction, not the destination. Chickentrepreneur is the honest version of the startup journey: messy, early-stage, learning in public.</p>
+    <p>Most of what I share feels obvious to me now. It wasn't six months ago. That's exactly why it's worth writing down.</p>
 
-  <blockquote class="pull-quote">
-    For a long time I learned before I acted. At some point that became a brake. So I flipped it: ship first, find the pattern after. What you'll find here are the patterns I pulled out of the mess.
-  </blockquote>
+    <blockquote class="pull-quote">
+      For a long time I learned before I acted. At some point that became a brake. So I flipped it: ship first, find the pattern after. What you'll find here are the patterns I pulled out of the mess.
+    </blockquote>
 
-  <p>Chickentrepreneur is where I share what I've learned from being on the ground at tech startups in Europe: the frameworks that hold up, the mindset shifts nobody tells you about, the career mechanics most people figure out too late, and the tools that genuinely move the needle.</p>
-  <p>This is not a guru's take. It's a fresh pair of eyes, shared in real time. If you're thinking about joining a startup, just started one, or moved from corporate and feel like you're drinking from a firehose: this is for you.</p>
+    <p>Chickentrepreneur is where I share what I've learned from being on the ground at tech startups in Europe: the frameworks that hold up, the mindset shifts nobody tells you about, the career mechanics most people figure out too late, and the tools that genuinely move the needle.</p>
+    <p>This is not a guru's take. It's a fresh pair of eyes, shared in real time. If you're thinking about joining a startup, just started one, or moved from corporate and feel like you're drinking from a firehose: this is for you.</p>
+  </div>
 
-  <!-- Timeline -->
+  <!-- Timeline — most recent first -->
   <div class="timeline-section">
     <p class="timeline-label">The path so far</p>
     <div class="timeline">
 
-      <div class="timeline-item">
-        <div class="timeline-period">University</div>
-        <div class="timeline-role">President, Junior Consulting Enterprise</div>
-        <div class="timeline-company">LSMConseil · UCLouvain · Business Engineering</div>
-        <div class="timeline-desc">First taste of team dynamics, management and leadership. Soft skills I still use every day, now fully translated to the startup world.</div>
-        <div class="timeline-tags">
-          <span class="timeline-tag">Soft skills</span>
-          <span class="timeline-tag">Leadership</span>
+      <div class="timeline-item current">
+        <div class="timeline-header">
+          <div class="company-logo">K</div>
+          <div class="timeline-meta">
+            <div class="timeline-period">Now</div>
+            <div class="timeline-role">Customer Success Manager</div>
+            <div class="timeline-company">Karomia · AI · Sustainability</div>
+          </div>
         </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-period">First venture</div>
-        <div class="timeline-role">Co-founder</div>
-        <div class="timeline-company">Posted · MarTech, pre-AI</div>
-        <div class="timeline-desc">Built a content repurposing tool with Thibaut. Pre-AI, figured things out the hard way: PMF hunting, no-code building, bootstrapping decisions.</div>
-        <div class="timeline-tags">
-          <span class="timeline-tag">Entrepreneurship</span>
-          <span class="timeline-tag">GTM</span>
-          <span class="timeline-tag">Product</span>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-period">First job</div>
-        <div class="timeline-role">Founder Associate · CEO Right-Arm</div>
-        <div class="timeline-company">Tapio · Carbon accounting software</div>
-        <div class="timeline-desc">Worked directly with the CEO across every function: ops, admin, HR, finance, strategy, team dynamics. The ultimate multi-hat role.</div>
-        <div class="timeline-tags">
-          <span class="timeline-tag">Operations</span>
-          <span class="timeline-tag">Strategy</span>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-period">Same company, new role</div>
-        <div class="timeline-role">Growth Marketeer</div>
-        <div class="timeline-company">Tapio</div>
-        <div class="timeline-desc">Promoted internally. Learned GTM from scratch: campaigns, frameworks, and the bridge between sales and marketing.</div>
-        <div class="timeline-tags">
-          <span class="timeline-tag">GTM</span>
-          <span class="timeline-tag">Growth</span>
-          <span class="timeline-tag">Marketing</span>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-period">Founded in parallel</div>
-        <div class="timeline-role">Co-founder</div>
-        <div class="timeline-company">FirstMovers · Belgium</div>
-        <div class="timeline-desc">The first and only community of young startup employees in Belgium. Workshops, events, mutual learning. A place where I learn as much as I teach.</div>
-        <div class="timeline-tags">
-          <span class="timeline-tag">Community</span>
-          <span class="timeline-tag">Network</span>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-period">Now</div>
-        <div class="timeline-role">Customer Success Manager</div>
-        <div class="timeline-company">Karomia · AI · Sustainability</div>
         <div class="timeline-desc">Technical CSM role: front door to clients, bridge to product, sales and tech. Learning fast about product thinking, managing expectations, and building with AI on the ground.</div>
         <div class="timeline-tags">
-          <span class="timeline-tag">AI</span>
-          <span class="timeline-tag">Product</span>
-          <span class="timeline-tag">Customer success</span>
+          <span class="timeline-tag">AI</span><span class="timeline-tag">Product</span><span class="timeline-tag">Customer success</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <div class="company-logo">FM</div>
+          <div class="timeline-meta">
+            <div class="timeline-period">Founded in parallel</div>
+            <div class="timeline-role">Co-founder</div>
+            <div class="timeline-company">FirstMovers · Belgium</div>
+          </div>
+        </div>
+        <div class="timeline-desc">The first and only community of young startup employees in Belgium. Workshops, events, mutual learning. A place where I learn as much as I teach.</div>
+        <div class="timeline-tags">
+          <span class="timeline-tag">Community</span><span class="timeline-tag">Network</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <div class="company-logo">T</div>
+          <div class="timeline-meta">
+            <div class="timeline-period">Same company, new role</div>
+            <div class="timeline-role">Growth Marketeer</div>
+            <div class="timeline-company">Tapio</div>
+          </div>
+        </div>
+        <div class="timeline-desc">Promoted internally. Learned GTM from scratch: campaigns, frameworks, and the bridge between sales and marketing.</div>
+        <div class="timeline-tags">
+          <span class="timeline-tag">GTM</span><span class="timeline-tag">Growth</span><span class="timeline-tag">Marketing</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <div class="company-logo">T</div>
+          <div class="timeline-meta">
+            <div class="timeline-period">First job</div>
+            <div class="timeline-role">Founder Associate · CEO Right-Arm</div>
+            <div class="timeline-company">Tapio · Carbon accounting software</div>
+          </div>
+        </div>
+        <div class="timeline-desc">Worked directly with the CEO across every function: ops, admin, HR, finance, strategy, team dynamics. The ultimate multi-hat role.</div>
+        <div class="timeline-tags">
+          <span class="timeline-tag">Operations</span><span class="timeline-tag">Strategy</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <div class="company-logo">P</div>
+          <div class="timeline-meta">
+            <div class="timeline-period">First venture</div>
+            <div class="timeline-role">Co-founder</div>
+            <div class="timeline-company">Posted · MarTech, pre-AI</div>
+          </div>
+        </div>
+        <div class="timeline-desc">Built a content repurposing tool with Thibaut. Pre-AI, figured things out the hard way: PMF hunting, no-code building, bootstrapping decisions.</div>
+        <div class="timeline-tags">
+          <span class="timeline-tag">Entrepreneurship</span><span class="timeline-tag">GTM</span><span class="timeline-tag">Product</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <div class="company-logo">UC</div>
+          <div class="timeline-meta">
+            <div class="timeline-period">University</div>
+            <div class="timeline-role">President, Junior Consulting Enterprise</div>
+            <div class="timeline-company">LSMConseil · UCLouvain · Business Engineering</div>
+          </div>
+        </div>
+        <div class="timeline-desc">First taste of team dynamics, management and leadership. Soft skills I still use every day, now fully translated to the startup world.</div>
+        <div class="timeline-tags">
+          <span class="timeline-tag">Soft skills</span><span class="timeline-tag">Leadership</span>
         </div>
       </div>
 
@@ -308,22 +215,10 @@ const base = '';
   <div class="sources-section">
     <p class="timeline-label">Where the knowledge comes from</p>
     <div class="sources-grid">
-      <div class="source-card">
-        <div class="source-title">🐣 FirstMovers</div>
-        <div class="source-desc">A community of ambitious young people navigating the same questions.</div>
-      </div>
-      <div class="source-card">
-        <div class="source-title">🧪 Field experiments</div>
-        <div class="source-desc">Testing things, failing, adjusting. In real time, not in theory.</div>
-      </div>
-      <div class="source-card">
-        <div class="source-title">📖 Reading obsessively</div>
-        <div class="source-desc">Newsletters, books, frameworks, first-principles thinking.</div>
-      </div>
-      <div class="source-card">
-        <div class="source-title">🤝 People further ahead</div>
-        <div class="source-desc">Founders, operators, career-changers. Everyone has a lesson.</div>
-      </div>
+      <div class="source-card"><div class="source-title">🐣 FirstMovers</div><div class="source-desc">A community of ambitious young people navigating the same questions.</div></div>
+      <div class="source-card"><div class="source-title">🧪 Field experiments</div><div class="source-desc">Testing things, failing, adjusting. In real time, not in theory.</div></div>
+      <div class="source-card"><div class="source-title">📖 Reading obsessively</div><div class="source-desc">Newsletters, books, frameworks, first-principles thinking.</div></div>
+      <div class="source-card"><div class="source-title">🤝 People further ahead</div><div class="source-desc">Founders, operators, career-changers. Everyone has a lesson.</div></div>
     </div>
   </div>
 
@@ -331,7 +226,7 @@ const base = '';
   <div class="cta-box">
     <p class="cta-bold">Twice a month. Pure signal. 1 min of reading = 1 min of learning.</p>
     <p class="cta-sub">Start reading or pick what you want to learn first.</p>
-    <a href={`${base}/`} class="cta-btn">Start learning →</a>
+    <a href="/" class="cta-btn">Start learning →</a>
   </div>
 
   <!-- Signature -->
@@ -341,10 +236,7 @@ const base = '';
   </div>
 </div>
 
-<!-- Footer -->
-<footer>
-  🐣 Chickentrepreneur · by Constantin Claes · Twice a month
-</footer>
+<footer>🐣 Chickentrepreneur · by Constantin Claes · Twice a month</footer>
 
 </body>
 </html>

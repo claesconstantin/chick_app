@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
+import Nav from '../components/Nav.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & { slug: string };
 
@@ -155,16 +156,7 @@ const dateStr = pubDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'lo
 </head>
 <body>
 
-<!-- Nav -->
-<nav>
-  <div class="nav-inner">
-    <a href={`${base}/`} class="nav-logo">🐣 Chickentrepreneur</a>
-    <div class="nav-right">
-      <a href={`${base}/about`} class="btn-pill">About</a>
-      <a href={`${base}/`} class="btn-ghost btn-pill">Learn ↓</a>
-    </div>
-  </div>
-</nav>
+<Nav />
 
 <!-- Article -->
 <div class="article-wrap">
