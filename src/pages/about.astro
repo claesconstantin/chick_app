@@ -16,19 +16,19 @@ import Nav from '../components/Nav.astro';
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
-      --bg: #FFE9CE;
-      --bg-dark: #0C1B33;
-      --text: #0C1B33;
-      --text-secondary: #3D4F6B;
-      --text-muted: #9A7197;
-      --accent: #6CBEED;
-      --accent-2: #BE97C6;
-      --accent-light: #E3F4FB;
-      --border: rgba(12,27,51,0.18);
+      --bg: #F5DD72;
+      --bg-dark: #1F487E;
+      --text: #1D3461;
+      --text-secondary: #1F487E;
+      --text-muted: #BB8588;
+      --accent: #247BA0;
+      --accent-2: #BB8588;
+      --accent-light: rgba(36,123,160,0.15);
+      --border: rgba(29,52,97,0.2);
       --surface: rgba(255,255,255,0.55);
-      --search-bg: rgba(255,255,255,0.6);
+      --search-bg: rgba(255,255,255,0.65);
     }
-    body { font-family: 'DM Sans', sans-serif; background-color: var(--bg); background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(12,27,51,0.055) 27px, rgba(12,27,51,0.055) 28px); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
+    body { font-family: 'DM Sans', sans-serif; background-color: var(--bg); background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(29,52,97,0.08) 27px, rgba(29,52,97,0.08) 28px); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
     a { color: var(--accent); text-decoration: none; }
     h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; line-height: 1.2; }
     strong, b { font-weight: 500; }
@@ -88,7 +88,7 @@ import Nav from '../components/Nav.astro';
     .cta-box { background: var(--accent-light); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 3rem; text-align: center; }
     .cta-bold { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 0.4rem; }
     .cta-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; }
-    .cta-btn { display: inline-block; padding: 8px 22px; border-radius: 999px; background: var(--accent); color: #FAF7F0; font-size: 14px; font-weight: 500; }
+    .cta-btn { display: inline-block; padding: 8px 22px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 500; }
 
     /* Signature */
     .signature { margin-top: 2.5rem; }

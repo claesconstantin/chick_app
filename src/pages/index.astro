@@ -38,22 +38,30 @@ const searchData = sortedPosts.map(p => ({
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
-      --bg: #FDFAF4;
-      --text: #2C2416;
-      --text-secondary: #7A6A52;
-      --text-muted: #B8A88A;
-      --accent: #C4995A;
-      --accent-light: #F5EDDA;
-      --border: #E8D5A3;
-      --search-bg: #FAF7F0;
+      --bg: #F5DD72;
+      --bg-dark: #1F487E;
+      --text: #1D3461;
+      --text-secondary: #1F487E;
+      --text-muted: #BB8588;
+      --accent: #247BA0;
+      --accent-2: #BB8588;
+      --accent-light: rgba(36,123,160,0.15);
+      --border: rgba(29,52,97,0.2);
+      --surface: rgba(255,255,255,0.55);
+      --search-bg: rgba(255,255,255,0.65);
     }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(29,52,97,0.08) 27px, rgba(29,52,97,0.08) 28px);
+      color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7;
+    }
     a { color: var(--accent); text-decoration: none; }
     h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; line-height: 1.2; }
     strong, b { font-weight: 500; }
 
     /* Hero */
-    .hero { padding: 3rem 1.5rem 2rem; max-width: 720px; margin: 0 auto; }
+    .hero { padding: 3rem 1.5rem 2rem; max-width: 960px; margin: 0 auto; }
     .pill-tag {
       display: inline-block; font-size: 11px;
       background: var(--accent-light); border: 1px solid var(--border);
@@ -132,10 +140,10 @@ const searchData = sortedPosts.map(p => ({
     }
 
     /* Concept map */
-    .concept-section { padding: 2rem 1.5rem; max-width: 720px; margin: 0 auto; }
+    .concept-section { padding: 2rem 1.5rem; max-width: 960px; margin: 0 auto; }
 
     /* Categories grid */
-    .categories-section { padding: 0 1.5rem 2rem; max-width: 720px; margin: 0 auto; }
+    .categories-section { padding: 0 1.5rem 2rem; max-width: 960px; margin: 0 auto; }
     .categories-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
     .category-card {
       background: var(--bg); border: 1px solid var(--border);
@@ -150,7 +158,7 @@ const searchData = sortedPosts.map(p => ({
     .category-coming { font-size: 12px; color: var(--text-muted); text-align: center; }
 
     /* Articles list */
-    .articles-section { padding: 0 1.5rem 3rem; max-width: 720px; margin: 0 auto; }
+    .articles-section { padding: 0 1.5rem 3rem; max-width: 960px; margin: 0 auto; }
     .article-row {
       display: flex; align-items: center; gap: 0.75rem;
       padding: 0.85rem 0; border-bottom: 0.5px solid var(--border);
