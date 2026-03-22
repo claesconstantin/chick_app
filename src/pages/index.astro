@@ -22,6 +22,16 @@ const searchData = sortedPosts.map(p => ({
   tags: p.data.tags,
   readTime: p.data.readTime,
 }));
+
+const postsWithBody = sortedPosts.map(p => ({
+  id: p.id,
+  title: p.data.title,
+  description: p.data.description,
+  category: p.data.category,
+  tags: p.data.tags,
+  readTime: p.data.readTime,
+  body: p.body ?? '',
+}));
 ---
 
 <!doctype html>
@@ -35,6 +45,7 @@ const searchData = sortedPosts.map(p => ({
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
@@ -120,19 +131,16 @@ const searchData = sortedPosts.map(p => ({
       font-family: 'Instrument Serif', serif; font-size: 32px;
       color: #0a0a0a; min-width: 80px;
     }
-    .timer-start-stop {
+    .timer-btns { display: flex; align-items: center; gap: 0.4rem; }
+    .timer-btn {
       font-family: 'Inter', sans-serif; font-size: 13px;
-      padding: 5px 16px; border-radius: 999px;
+      padding: 5px 14px; border-radius: 999px;
       border: 1px solid var(--border); background: transparent;
       color: var(--text-secondary); cursor: pointer; transition: all 0.12s;
     }
-    .timer-start-stop:hover { background: var(--accent-light); border-color: rgba(166,209,255,0.8); color: var(--text); }
-    .timer-start-stop.running { border-color: rgba(166,209,255,0.8); color: #0a0a0a; }
+    .timer-btn:hover { background: var(--accent-light); border-color: rgba(166,209,255,0.8); color: var(--text); }
+    .timer-btn.active { border-color: rgba(166,209,255,0.8); color: #0a0a0a; }
     .timer-note { font-size: 12px; color: var(--text-muted); margin: 0 0 2.5rem; }
-    .notif-btn {
-      font-size: 11px; color: var(--text-muted); background: none; border: none;
-      cursor: pointer; text-decoration: underline; padding: 0; display: none;
-    }
 
     /* Section labels */
     .section-label {
@@ -200,26 +208,27 @@ const searchData = sortedPosts.map(p => ({
 
   <!-- Timer -->
   <div class="timer-zone">
-    <div class="timer-row">
+    <div class="timer-row" id="timer-setup">
       <span class="timer-label">I have</span>
       <input class="timer-inline-input" id="timer-input" type="number" value="5" min="0.5" max="180" step="0.5" />
       <span class="timer-label">minutes to learn</span>
     </div>
     <div class="timer-bottom">
       <span class="timer-display" id="timer-display">05:00</span>
-      <button class="timer-start-stop" id="timer-start-stop">▶ Start</button>
+      <div class="timer-btns">
+        <button class="timer-btn" id="timer-start">▶ Start</button>
+        <button class="timer-btn" id="timer-restart" style="display:none">↺ Restart</button>
+        <button class="timer-btn" id="timer-finish" style="display:none">✓ Done</button>
+      </div>
     </div>
   </div>
-  <p class="timer-note">
-    1 minute of reading = 1 minute of learning.
-    <button class="notif-btn" id="notif-btn">Enable notifications 🔔</button>
-  </p>
+  <p class="timer-note">1 minute of reading = 1 minute of learning.</p>
 </div>
 
 <!-- Concept map -->
 <div class="concept-section">
   <p class="section-label">Concept map</p>
-  <ConceptGraph postsJson={JSON.stringify(searchData)} />
+  <ConceptGraph postsJson={JSON.stringify(postsWithBody)} />
 </div>
 
 <!-- Categories grid -->
@@ -325,78 +334,122 @@ const searchData = sortedPosts.map(p => ({
   });
 
   // ── Timer ─────────────────────────────────────────────
+  type TimerState = 'idle' | 'running' | 'paused';
   let timeLeft = 5 * 60;
-  let timerRunning = false;
+  let totalTime = 5 * 60;
+  let timerState: TimerState = 'idle';
   let interval: ReturnType<typeof setInterval> | null = null;
 
-  const display      = document.getElementById('timer-display') as HTMLElement;
-  const startStopBtn = document.getElementById('timer-start-stop') as HTMLButtonElement;
-  const timerInput   = document.getElementById('timer-input') as HTMLInputElement;
-  const notifBtn     = document.getElementById('notif-btn') as HTMLButtonElement;
+  const display     = document.getElementById('timer-display') as HTMLElement;
+  const timerInput  = document.getElementById('timer-input') as HTMLInputElement;
+  const timerSetup  = document.getElementById('timer-setup') as HTMLElement;
+  const startBtn    = document.getElementById('timer-start') as HTMLButtonElement;
+  const restartBtn  = document.getElementById('timer-restart') as HTMLButtonElement;
+  const finishBtn   = document.getElementById('timer-finish') as HTMLButtonElement;
 
   function fmt(s: number) {
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
   }
-  display.textContent = fmt(timeLeft);
 
-  timerInput.addEventListener('input', () => {
-    const val = parseFloat(timerInput.value);
-    if (!isNaN(val) && val > 0 && !timerRunning) {
-      timeLeft = Math.round(val * 60);
+  function setIdle() {
+    timerState = 'idle';
+    startBtn.textContent = '▶ Start'; startBtn.classList.remove('active');
+    restartBtn.style.display = 'none'; finishBtn.style.display = 'none';
+    timerSetup.style.display = 'flex';
+  }
+
+  function startInterval() {
+    interval = setInterval(() => {
+      timeLeft--;
       display.textContent = fmt(timeLeft);
-    }
-  });
+      if (timeLeft <= 0) celebrate();
+    }, 1000);
+  }
 
-  function playBeep() {
+  function setRunning() {
+    timerState = 'running';
+    startBtn.textContent = '⏸ Pause'; startBtn.classList.add('active');
+    restartBtn.style.display = ''; finishBtn.style.display = '';
+    timerSetup.style.display = 'none';
+    startInterval();
+  }
+
+  function setPaused() {
+    timerState = 'paused';
+    if (interval) { clearInterval(interval); interval = null; }
+    startBtn.textContent = '▶ Resume'; startBtn.classList.remove('active');
+  }
+
+  function playCelebration() {
     try {
       const ac = new AudioContext();
-      [0, 0.3, 0.6].forEach((delay, i) => {
+      // Ascending fanfare: C5 E5 G5 C6
+      [523, 659, 784, 1047].forEach((freq, i) => {
         const osc = ac.createOscillator(), gain = ac.createGain();
         osc.connect(gain); gain.connect(ac.destination);
-        osc.frequency.value = i === 2 ? 880 : 660; osc.type = 'sine';
-        gain.gain.setValueAtTime(0, ac.currentTime+delay);
-        gain.gain.linearRampToValueAtTime(0.35, ac.currentTime+delay+0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+delay+0.8);
-        osc.start(ac.currentTime+delay); osc.stop(ac.currentTime+delay+0.8);
+        osc.frequency.value = freq; osc.type = 'sine';
+        const t = ac.currentTime + i * 0.14;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.28, t + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+        osc.start(t); osc.stop(t + 0.55);
       });
-    } catch(_) {}
+    } catch (_) {}
   }
 
-  function onFinish() {
-    timerRunning = false;
-    if (interval) clearInterval(interval);
-    startStopBtn.textContent = '▶ Start';
-    startStopBtn.classList.remove('running');
+  function celebrate() {
+    if (interval) { clearInterval(interval); interval = null; }
     display.textContent = '00:00';
-    playBeep();
-    if ('Notification' in window && Notification.permission === 'granted')
-      new Notification('🐣 Session complete!', { body: 'Your learning session is done.', icon: '/favicon.svg' });
+    playCelebration();
+    const c = (window as any).confetti;
+    if (typeof c === 'function') {
+      c({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
+      setTimeout(() => c({ particleCount: 60, spread: 60, origin: { y: 0.4 }, angle: 60 }), 300);
+      setTimeout(() => c({ particleCount: 60, spread: 60, origin: { y: 0.4 }, angle: 120 }), 500);
+    }
+    setTimeout(() => {
+      setIdle();
+      timeLeft = totalTime;
+      display.textContent = fmt(timeLeft);
+    }, 3500);
   }
 
-  startStopBtn.addEventListener('click', () => {
-    if (timerRunning) {
-      clearInterval(interval); timerRunning = false;
-      startStopBtn.textContent = '▶ Start'; startStopBtn.classList.remove('running');
-    } else {
-      // sync from input before starting
+  startBtn.addEventListener('click', () => {
+    if (timerState === 'idle') {
       const val = parseFloat(timerInput.value);
-      if (!isNaN(val) && val > 0) timeLeft = Math.round(val * 60);
-      if (timeLeft <= 0) timeLeft = 5 * 60;
-      timerRunning = true;
-      startStopBtn.textContent = '⏸ Pause'; startStopBtn.classList.add('running');
-      interval = setInterval(() => {
-        timeLeft--; display.textContent = fmt(timeLeft);
-        if (timeLeft <= 0) onFinish();
-      }, 1000);
+      if (!isNaN(val) && val > 0) { totalTime = Math.round(val * 60); timeLeft = totalTime; }
+      display.textContent = fmt(timeLeft);
+      setRunning();
+    } else if (timerState === 'running') {
+      setPaused();
+    } else {
+      startInterval();
+      timerState = 'running';
+      startBtn.textContent = '⏸ Pause'; startBtn.classList.add('active');
     }
   });
 
-  if ('Notification' in window && Notification.permission !== 'granted') {
-    notifBtn.style.display = 'inline';
-    notifBtn.addEventListener('click', async () => {
-      if ((await Notification.requestPermission()) === 'granted') notifBtn.style.display = 'none';
-    });
-  }
+  restartBtn.addEventListener('click', () => {
+    if (interval) { clearInterval(interval); interval = null; }
+    timeLeft = totalTime;
+    display.textContent = fmt(timeLeft);
+    setIdle();
+  });
+
+  finishBtn.addEventListener('click', () => {
+    if (interval) { clearInterval(interval); interval = null; }
+    celebrate();
+  });
+
+  timerInput.addEventListener('input', () => {
+    if (timerState === 'idle') {
+      const val = parseFloat(timerInput.value);
+      if (!isNaN(val) && val > 0) {
+        totalTime = Math.round(val * 60); timeLeft = totalTime;
+        display.textContent = fmt(timeLeft);
+      }
+    }
+  });
 </script>
 
 </body>

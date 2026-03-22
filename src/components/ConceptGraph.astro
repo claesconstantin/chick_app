@@ -108,296 +108,331 @@ const { postsJson } = Astro.props;
   // ── Data ──────────────────────────────────────────────
   interface Post {
     id: string; title: string; description: string;
-    category: string; tags: string[]; readTime: number;
+    category: string; tags: string[]; readTime: number; body?: string;
   }
   const POSTS: Post[] = JSON.parse(
     (document.getElementById('cg-posts') as HTMLScriptElement).text
   );
-
   const CAT_LABELS: Record<string, string> = {
     mindset: '🧠 Mindset', frameworks: '🗺️ Frameworks',
     tools: '🛠️ Tools', career: '💼 Career', 'soft-skills': '🤝 Soft Skills',
   };
   const CAT_COLORS: Record<string, string> = {
     mindset: '#a6d1ff', frameworks: '#e3dff2',
-    career: '#daf1de', 'soft-skills': '#a6d1ff',
-    tools: '#e3dff2',
+    career: '#daf1de', 'soft-skills': '#a6d1ff', tools: '#e3dff2',
   };
 
-  // ── Canvas setup ──────────────────────────────────────
+  // ── Word extraction (Obsidian methodology) ────────────
+  const STOP = new Set([
+    'the','and','for','that','this','with','from','have','been','will',
+    'they','their','them','what','when','where','which','who','how',
+    'not','but','are','was','were','has','had','does','did','can',
+    'could','would','should','may','might','shall','its','our','your',
+    'you','we','he','she','his','her','also','just','more','some',
+    'than','then','into','over','after','before','through','about',
+    'there','here','even','still','only','very','well','back','down',
+    'each','both','many','much','make','made','take','know','think',
+    'work','good','need','want','time','people','going','like','come',
+    'such','same','every','most','while','already','always','often',
+    'never','really','quite','rather','because','however','therefore',
+    'thus','although','though','unless','either','neither','whether',
+    'these','those','other','another','between','among','around',
+    'during','until','against','without','within','since','upon',
+    'once','away','again','right','long','little','large','small',
+    'high','great','different','being','doing','having','things',
+    'thing','mean','find','show','feel','tell','give','call','turn',
+    'start','point','look','move','seem','become','keep','open','let',
+    'something','anything','nothing','someone','anyone','everyone',
+  ]);
+  function topWords(text: string, n: number): Array<[string, number]> {
+    const freq = new Map<string, number>();
+    for (const w of (text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [])) {
+      if (!STOP.has(w)) freq.set(w, (freq.get(w) || 0) + 1);
+    }
+    return [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, n);
+  }
+
+  // ── Canvas ────────────────────────────────────────────
   const canvas = document.getElementById('cg-canvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
   let W = 0, H = 0, dpr = 1;
 
-  // ── Nodes & edges ─────────────────────────────────────
-  interface Node {
-    id: string; label: string; cat: string; article?: string;
+  // ── Build graph ───────────────────────────────────────
+  interface GNode {
+    id: string; label: string; type: 'article' | 'concept';
+    cat: string; articleId?: string;
     x: number; y: number; vx: number; vy: number;
     w: number; h: number; fx: number; fy: number;
   }
-  const NODES: Node[] = [
-    { id: 'surface-luck',   label: 'Surface luck',      cat: 'frameworks',   article: '/blog/surface-luck',      x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'speed-velocity', label: 'Speed vs. velocity', cat: 'mindset',     article: '/blog/speed-vs-velocity', x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: '99-done',        label: '99% done',           cat: 'soft-skills', article: '/blog/99-percent-done',   x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'pmf',            label: 'PMF',                cat: 'frameworks',  x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'gtm',            label: 'GTM',                cat: 'frameworks',  x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'equity',         label: 'Equity',             cat: 'career',      x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'compounding',    label: 'Compounding',        cat: 'mindset',     x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'operator',       label: 'Operator mindset',   cat: 'mindset',     x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'networking',     label: 'Networking',         cat: 'frameworks',  x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'communication',  label: 'Communication',      cat: 'soft-skills', x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-    { id: 'direction',      label: 'Direction',          cat: 'mindset',     x:0,y:0,vx:0,vy:0,w:0,h:28,fx:0,fy:0 },
-  ];
-  const EDGES: [number, number][] = [
-    [0,8],[0,4],[1,10],[1,7],[2,9],[2,7],[3,4],[7,6],[6,5],[10,7],[8,6],[0,6],[1,6],
-  ];
+  interface GEdge { a: number; b: number; weight: number; cat: string; }
 
-  // ── Articles per node ─────────────────────────────────
-  function getNodeArticles(node: Node): Post[] {
-    const nodeTagMap: Record<string, string[]> = {
-      'surface-luck':   ['luck','networking','action'],
-      'networking':     ['networking'],
-      'communication':  ['communication','adoption'],
-      'direction':      ['direction','focus','strategy'],
-      'compounding':    ['compounding'],
-      'gtm':            ['gtm','go-to-market','marketing'],
-      'equity':         ['equity'],
-      'operator':       ['operator'],
-      'pmf':            ['pmf'],
-    };
-    const extraTags = nodeTagMap[node.id] || [];
-    const seen = new Set<string>();
-    const results: Post[] = [];
-    // Direct article first
-    if (node.article) {
-      const slug = node.article.replace('/blog/', '');
-      const p = POSTS.find(p => p.id === slug);
-      if (p) { seen.add(p.id); results.push(p); }
-    }
-    // Same category
-    POSTS.forEach(p => {
-      if (!seen.has(p.id) && p.category === node.cat) {
-        seen.add(p.id); results.push(p);
-      }
+  const NODES: GNode[] = [];
+  const EDGES: GEdge[] = [];
+
+  // Article nodes
+  POSTS.forEach(p => NODES.push({
+    id: `a:${p.id}`,
+    label: p.title.length > 22 ? p.title.slice(0, 22) + '…' : p.title,
+    type: 'article', cat: p.category, articleId: p.id,
+    x: 0, y: 0, vx: 0, vy: 0, w: 0, h: 32, fx: 0, fy: 0,
+  }));
+
+  // Extract top 8 words per article from full body text
+  const perArticle = POSTS.map(p => {
+    const text = [p.body || '', p.title, p.description, ...(p.tags || [])].join(' ');
+    return topWords(text, 8);
+  });
+
+  // Total occurrences per concept word across all articles (for node sizing)
+  const conceptTotal = new Map<string, number>();
+  perArticle.forEach(words => {
+    words.forEach(([w, c]) => conceptTotal.set(w, (conceptTotal.get(w) || 0) + c));
+  });
+
+  // Concept nodes — sized by total occurrences (more = larger node)
+  const wordIdx = new Map<string, number>();
+  conceptTotal.forEach((total, word) => {
+    wordIdx.set(word, NODES.length);
+    NODES.push({
+      id: `c:${word}`, label: word, type: 'concept', cat: '',
+      x: 0, y: 0, vx: 0, vy: 0, w: 0,
+      h: Math.max(20, Math.min(28, 16 + Math.round(total * 0.8))),
+      fx: 0, fy: 0,
     });
-    // Tag matches
-    POSTS.forEach(p => {
-      if (!seen.has(p.id) && p.tags.some(t => extraTags.includes(t.toLowerCase()))) {
-        seen.add(p.id); results.push(p);
-      }
+  });
+
+  // Edges — weight = occurrences of that word in this specific article
+  perArticle.forEach((words, ai) => {
+    words.forEach(([word, count]) => {
+      const bi = wordIdx.get(word);
+      if (bi !== undefined) EDGES.push({ a: ai, b: bi, weight: count, cat: POSTS[ai].category });
     });
-    return results;
-  }
+  });
 
   // ── Panel ─────────────────────────────────────────────
-  const panel       = document.getElementById('cg-panel')!;
-  const panelTitle  = document.getElementById('cg-panel-title')!;
-  const panelCat    = document.getElementById('cg-panel-cat')!;
-  const panelArts   = document.getElementById('cg-panel-articles')!;
-  const panelClose  = document.getElementById('cg-panel-close')!;
-  const hint        = document.getElementById('cg-hint')!;
+  const panel      = document.getElementById('cg-panel')!;
+  const panelTitle = document.getElementById('cg-panel-title')!;
+  const panelCat   = document.getElementById('cg-panel-cat')!;
+  const panelArts  = document.getElementById('cg-panel-articles')!;
+  const panelClose = document.getElementById('cg-panel-close')!;
+  const hint       = document.getElementById('cg-hint')!;
 
-  function openPanel(node: Node) {
-    panelCat.textContent   = CAT_LABELS[node.cat] ?? node.cat;
-    panelTitle.textContent = node.label;
-    const arts = getNodeArticles(node);
-    if (arts.length === 0) {
-      panelArts.innerHTML = '<p class="cg-no-articles">No articles yet — coming soon.</p>';
-    } else {
-      panelArts.innerHTML = arts.map(p =>
-        `<a href="/blog/${p.id}" class="cg-article">
-          <div class="cg-article-title">${p.title}</div>
-          <div class="cg-article-meta">
-            <span class="cg-article-cat">${CAT_LABELS[p.category] ?? p.category}</span>
-            <span class="cg-article-time">${p.readTime} min read</span>
-          </div>
-        </a>`
-      ).join('');
-    }
+  function openConceptPanel(node: GNode) {
+    const word = node.label;
+    const related = POSTS.filter((_, i) => perArticle[i].some(([w]) => w === word));
+    panelCat.textContent = 'concept';
+    panelTitle.textContent = word;
+    panelArts.innerHTML = related.length === 0
+      ? '<p class="cg-no-articles">No articles yet.</p>'
+      : related.map(p =>
+          `<a href="/blog/${p.id}" class="cg-article">
+            <div class="cg-article-title">${p.title}</div>
+            <div class="cg-article-meta">
+              <span class="cg-article-cat">${CAT_LABELS[p.category] ?? p.category}</span>
+              <span class="cg-article-time">${p.readTime} min read</span>
+            </div>
+          </a>`
+        ).join('');
     panel.classList.add('open');
     hint.style.opacity = '0';
   }
 
-  function closePanel() {
-    panel.classList.remove('open');
-    hint.style.opacity = '1';
-  }
-
+  function closePanel() { panel.classList.remove('open'); hint.style.opacity = '1'; }
   panelClose.addEventListener('click', closePanel);
+
+  function handleClick(node: GNode) {
+    if (node.type === 'article' && node.articleId) {
+      window.location.href = `/blog/${node.articleId}`;
+    } else {
+      openConceptPanel(node);
+    }
+  }
 
   // ── Physics ───────────────────────────────────────────
   function measureNodes() {
-    ctx.font = '11px Inter, sans-serif';
-    NODES.forEach(n => { n.w = Math.max(56, ctx.measureText(n.label).width + 24); });
+    NODES.forEach(n => {
+      if (n.type === 'article') {
+        ctx.font = `500 11px 'Inter', sans-serif`;
+        n.w = Math.max(80, ctx.measureText(n.label).width + 28);
+      } else {
+        ctx.font = `400 10px 'Inter', sans-serif`;
+        n.w = Math.max(44, ctx.measureText(n.label).width + 18);
+      }
+    });
   }
+
   function initPositions() {
-    NODES.forEach((n, i) => {
-      const angle = (i / NODES.length) * Math.PI * 2 - Math.PI / 2;
-      const r = Math.min(W, H) * 0.32;
-      n.x = W / 2 + r * Math.cos(angle);
-      n.y = H / 2 + r * Math.sin(angle);
+    const articles = NODES.filter(n => n.type === 'article');
+    const concepts = NODES.filter(n => n.type === 'concept');
+    articles.forEach((n, i) => {
+      const angle = (i / Math.max(1, articles.length)) * Math.PI * 2 - Math.PI / 2;
+      const r = Math.min(W, H) * 0.2;
+      n.x = W / 2 + r * Math.cos(angle); n.y = H / 2 + r * Math.sin(angle);
+      n.vx = 0; n.vy = 0;
+    });
+    concepts.forEach((n, i) => {
+      const angle = (i / Math.max(1, concepts.length)) * Math.PI * 2 - Math.PI / 2;
+      const r = Math.min(W, H) * 0.38;
+      n.x = W / 2 + r * Math.cos(angle); n.y = H / 2 + r * Math.sin(angle);
       n.vx = 0; n.vy = 0;
     });
   }
-  function simulate(pinned: Node | null = null) {
-    const REPULSE = 3500, SPRING_K = 0.045, REST = 120, GRAVITY = 0.012, DAMP = 0.86;
+
+  function simulate(pinned: GNode | null = null) {
+    const SPRING_K = 0.04, REST = 90, GRAVITY = 0.01, DAMP = 0.85;
     NODES.forEach(n => { n.fx = 0; n.fy = 0; });
+    // Repulsion — concept-concept pairs get less repulsion so they can cluster
     for (let i = 0; i < NODES.length; i++) {
       for (let j = i + 1; j < NODES.length; j++) {
         const a = NODES[i], b = NODES[j];
-        const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy)+0.1;
-        const f = REPULSE/(d*d), fx = f*dx/d, fy = f*dy/d;
+        const R = (a.type === 'concept' && b.type === 'concept') ? 700 : 3200;
+        const dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx*dx + dy*dy) + 0.1;
+        const f = R / (d * d), fx = f * dx / d, fy = f * dy / d;
         a.fx -= fx; a.fy -= fy; b.fx += fx; b.fy += fy;
       }
     }
-    EDGES.forEach(([i,j]) => {
-      const a = NODES[i], b = NODES[j];
-      const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy)+0.1;
-      const f = SPRING_K*(d-REST), fx = f*dx/d, fy = f*dy/d;
-      a.fx += fx; a.fy += fy; b.fx -= fx; b.fy -= fy;
+    // Springs on edges (article ↔ concept)
+    EDGES.forEach(({ a, b }) => {
+      const na = NODES[a], nb = NODES[b];
+      const dx = nb.x - na.x, dy = nb.y - na.y, d = Math.sqrt(dx*dx + dy*dy) + 0.1;
+      const f = SPRING_K * (d - REST), fx = f * dx / d, fy = f * dy / d;
+      na.fx += fx; na.fy += fy; nb.fx -= fx; nb.fy -= fy;
     });
-    NODES.forEach(n => {
-      n.fx += (W/2-n.x)*GRAVITY;
-      n.fy += (H/2-n.y)*GRAVITY;
-    });
+    // Gravity to center
+    NODES.forEach(n => { n.fx += (W/2 - n.x) * GRAVITY; n.fy += (H/2 - n.y) * GRAVITY; });
     NODES.forEach(n => {
       if (n === pinned) return;
-      n.vx = (n.vx+n.fx)*DAMP; n.vy = (n.vy+n.fy)*DAMP;
+      n.vx = (n.vx + n.fx) * DAMP; n.vy = (n.vy + n.fy) * DAMP;
       n.x += n.vx; n.y += n.vy;
-      const px = n.w/2+8, py = n.h/2+8;
-      n.x = Math.max(px, Math.min(W-px, n.x));
-      n.y = Math.max(py, Math.min(H-py, n.y));
+      const px = n.w/2 + 8, py = n.h/2 + 8;
+      n.x = Math.max(px, Math.min(W - px, n.x));
+      n.y = Math.max(py, Math.min(H - py, n.y));
     });
   }
 
   // ── Draw ──────────────────────────────────────────────
   function pill(x: number, y: number, w: number, h: number) {
-    const r = h/2;
+    const r = h / 2;
     ctx.beginPath();
-    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
-    ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h-r);
-    ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.lineTo(x+r,y+h);
-    ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
-    ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+    ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y);
+    ctx.arcTo(x+w, y, x+w, y+r, r); ctx.lineTo(x+w, y+h-r);
+    ctx.arcTo(x+w, y+h, x+w-r, y+h, r); ctx.lineTo(x+r, y+h);
+    ctx.arcTo(x, y+h, x, y+h-r, r); ctx.lineTo(x, y+r);
+    ctx.arcTo(x, y, x+r, y, r); ctx.closePath();
   }
 
-  let hoveredNode: Node | null = null;
+  let hoveredNode: GNode | null = null;
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    EDGES.forEach(([i,j]) => {
-      const a = NODES[i], b = NODES[j];
-      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
-      ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1; ctx.stroke();
+    // Edges — thickness and opacity scale with word occurrence count
+    EDGES.forEach(e => {
+      const a = NODES[e.a], b = NODES[e.b];
+      const color = CAT_COLORS[e.cat] || '#a6d1ff';
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+      ctx.globalAlpha = Math.max(0.12, Math.min(0.55, 0.08 + e.weight * 0.06));
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(0.5, Math.min(4, e.weight * 0.6));
+      ctx.stroke();
+      ctx.globalAlpha = 1;
     });
+    // Nodes
     NODES.forEach(n => {
       const hov = n === hoveredNode;
-      const color = CAT_COLORS[n.cat] || '#a6d1ff';
-      pill(n.x-n.w/2, n.y-n.h/2, n.w, n.h);
-      ctx.fillStyle = hov ? 'rgba(166,209,255,0.2)' : 'rgba(255,255,255,0.9)'; ctx.fill();
-      ctx.strokeStyle = hov ? 'rgba(166,209,255,0.8)' : color;
-      ctx.lineWidth = hov ? 2 : 1; ctx.stroke();
-      ctx.fillStyle = '#0a0a0a';
-      ctx.font = `${n.article ? '500' : '400'} 11px 'Inter', sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(n.label, n.x, n.y);
-      if (n.article) {
-        const tw = ctx.measureText(n.label).width;
-        ctx.beginPath();
-        ctx.moveTo(n.x-tw/2, n.y+7); ctx.lineTo(n.x+tw/2, n.y+7);
-        ctx.strokeStyle = hov ? 'rgba(166,209,255,0.8)' : color; ctx.lineWidth = 0.8; ctx.stroke();
+      if (n.type === 'article') {
+        const color = CAT_COLORS[n.cat] || '#a6d1ff';
+        pill(n.x - n.w/2, n.y - n.h/2, n.w, n.h);
+        ctx.globalAlpha = hov ? 0.4 : 0.2;
+        ctx.fillStyle = color; ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = color; ctx.lineWidth = hov ? 2 : 1.5; ctx.stroke();
+        ctx.fillStyle = '#0a0a0a';
+        ctx.font = `500 11px 'Inter', sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(n.label, n.x, n.y);
+      } else {
+        pill(n.x - n.w/2, n.y - n.h/2, n.w, n.h);
+        ctx.fillStyle = hov ? 'rgba(166,209,255,0.2)' : 'rgba(255,255,255,0.85)'; ctx.fill();
+        ctx.strokeStyle = hov ? 'rgba(166,209,255,0.8)' : 'rgba(0,0,0,0.1)';
+        ctx.lineWidth = hov ? 1.2 : 0.7; ctx.stroke();
+        ctx.fillStyle = '#555555';
+        ctx.font = `400 10px 'Inter', sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(n.label, n.x, n.y);
       }
     });
   }
 
   // ── Interaction ───────────────────────────────────────
-  let draggingNode: Node | null = null;
-  let dragStartX = 0, dragStartY = 0;
-  let hasDragged = false;
+  let draggingNode: GNode | null = null;
+  let dragStartX = 0, dragStartY = 0, hasDragged = false;
   let animId: number;
 
-  function nodeAt(mx: number, my: number): Node | null {
+  function nodeAt(mx: number, my: number): GNode | null {
     for (const n of NODES) {
-      if (mx >= n.x-n.w/2 && mx <= n.x+n.w/2 &&
-          my >= n.y-n.h/2 && my <= n.y+n.h/2) return n;
+      if (mx >= n.x-n.w/2 && mx <= n.x+n.w/2 && my >= n.y-n.h/2 && my <= n.y+n.h/2) return n;
     }
     return null;
   }
 
-  function getPos(e: MouseEvent | Touch): { mx: number; my: number } {
-    const rect = canvas.getBoundingClientRect();
-    return { mx: (e as MouseEvent).clientX - rect.left, my: (e as MouseEvent).clientY - rect.top };
+  function getXY(e: MouseEvent): { mx: number; my: number } {
+    const r = canvas.getBoundingClientRect();
+    return { mx: e.clientX - r.left, my: e.clientY - r.top };
   }
 
-  // Mouse
-  canvas.addEventListener('mousedown', (e) => {
-    const { mx, my } = getPos(e);
+  canvas.addEventListener('mousedown', e => {
+    const { mx, my } = getXY(e);
     draggingNode = nodeAt(mx, my);
     if (draggingNode) { dragStartX = mx; dragStartY = my; hasDragged = false; }
   });
-  canvas.addEventListener('mousemove', (e) => {
-    const { mx, my } = getPos(e);
+  canvas.addEventListener('mousemove', e => {
+    const { mx, my } = getXY(e);
     if (draggingNode) {
-      const dist = Math.sqrt((mx-dragStartX)**2 + (my-dragStartY)**2);
-      if (dist > 4) hasDragged = true;
-      draggingNode.x = mx; draggingNode.y = my;
-      draggingNode.vx = 0; draggingNode.vy = 0;
+      if (Math.sqrt((mx-dragStartX)**2 + (my-dragStartY)**2) > 4) hasDragged = true;
+      draggingNode.x = mx; draggingNode.y = my; draggingNode.vx = 0; draggingNode.vy = 0;
       canvas.style.cursor = 'grabbing';
     } else {
       hoveredNode = nodeAt(mx, my);
       canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
     }
   });
-  canvas.addEventListener('mouseup', (e) => {
-    if (draggingNode && !hasDragged) {
-      openPanel(draggingNode);
-    }
+  canvas.addEventListener('mouseup', e => {
+    if (draggingNode && !hasDragged) handleClick(draggingNode);
     draggingNode = null;
-    const { mx, my } = getPos(e);
+    const { mx, my } = getXY(e);
     hoveredNode = nodeAt(mx, my);
     canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
   });
   canvas.addEventListener('mouseleave', () => {
-    draggingNode = null; hoveredNode = null;
-    canvas.style.cursor = 'default';
+    draggingNode = null; hoveredNode = null; canvas.style.cursor = 'default';
   });
 
-  // Touch
-  canvas.addEventListener('touchstart', (e) => {
-    const t = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const mx = t.clientX-rect.left, my = t.clientY-rect.top;
+  canvas.addEventListener('touchstart', e => {
+    const t = e.touches[0], r = canvas.getBoundingClientRect();
+    const mx = t.clientX - r.left, my = t.clientY - r.top;
     draggingNode = nodeAt(mx, my);
     if (draggingNode) { dragStartX = mx; dragStartY = my; hasDragged = false; e.preventDefault(); }
   }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => {
-    if (!draggingNode) return;
-    e.preventDefault();
-    const t = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const mx = t.clientX-rect.left, my = t.clientY-rect.top;
-    const dist = Math.sqrt((mx-dragStartX)**2 + (my-dragStartY)**2);
-    if (dist > 4) hasDragged = true;
-    draggingNode.x = mx; draggingNode.y = my;
-    draggingNode.vx = 0; draggingNode.vy = 0;
+  canvas.addEventListener('touchmove', e => {
+    if (!draggingNode) return; e.preventDefault();
+    const t = e.touches[0], r = canvas.getBoundingClientRect();
+    const mx = t.clientX - r.left, my = t.clientY - r.top;
+    if (Math.sqrt((mx-dragStartX)**2 + (my-dragStartY)**2) > 4) hasDragged = true;
+    draggingNode.x = mx; draggingNode.y = my; draggingNode.vx = 0; draggingNode.vy = 0;
   }, { passive: false });
   canvas.addEventListener('touchend', () => {
-    if (draggingNode && !hasDragged) openPanel(draggingNode);
+    if (draggingNode && !hasDragged) handleClick(draggingNode);
     draggingNode = null;
   });
 
   // ── Loop ──────────────────────────────────────────────
-  function loop() {
-    simulate(draggingNode);
-    draw();
-    animId = requestAnimationFrame(loop);
-  }
+  function loop() { simulate(draggingNode); draw(); animId = requestAnimationFrame(loop); }
 
   function resize() {
     dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     W = rect.width; H = rect.height;
-    canvas.width = W*dpr; canvas.height = H*dpr;
+    canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.scale(dpr, dpr);
     measureNodes();
   }

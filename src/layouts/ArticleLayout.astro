@@ -229,5 +229,38 @@ const dateStr = pubDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'lo
   }
 </script>
 
+<script>
+  // ── Bionic Reading ────────────────────────────────────
+  function applyBionic(container: Element) {
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const p = node.parentElement;
+        if (!p) return NodeFilter.FILTER_REJECT;
+        if (p.closest('h1,h2,h3,h4,code,pre,a,script,style')) return NodeFilter.FILTER_REJECT;
+        if (p.tagName === 'B' || p.tagName === 'STRONG') return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes: Text[] = [];
+    let n: Node | null;
+    while ((n = walker.nextNode())) nodes.push(n as Text);
+    nodes.forEach(tn => {
+      const text = tn.textContent || '';
+      if (!text.trim()) return;
+      const html = text.replace(/\b([A-Za-z\u00C0-\u00FF]{2,})\b/g, w => {
+        const half = Math.ceil(w.length / 2);
+        return `<b>${w.slice(0, half)}</b>${w.slice(half)}`;
+      });
+      if (html !== text) {
+        const span = document.createElement('span');
+        span.innerHTML = html;
+        tn.parentNode?.replaceChild(span, tn);
+      }
+    });
+  }
+  const body = document.getElementById('article-body');
+  if (body) applyBionic(body);
+</script>
+
 </body>
 </html>
