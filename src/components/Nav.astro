@@ -24,7 +24,7 @@
 <style>
   nav {
     background: #ffffff;
-    border-bottom: 1px solid rgba(0,0,0,0.07);
+    border-bottom: 1px solid #dedfe3;
     padding: 0 2rem;
     position: sticky;
     top: 0;
@@ -36,12 +36,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 58px;
+    height: 68px;
   }
   .nav-logo {
-    font-family: 'Instrument Serif', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 19px;
-    color: #0a0a0a;
+    color: #1f2a44;
     font-weight: 400;
     text-decoration: none;
     letter-spacing: 0.01em;
@@ -51,18 +51,18 @@
     font-family: 'Inter', sans-serif;
     font-size: 13px;
     padding: 5px 16px;
-    border-radius: 999px;
+    border-radius: 7px;
     cursor: pointer;
-    border: 1px solid rgba(0,0,0,0.15);
+    border: 1px solid #dedfe3;
     background: transparent;
-    color: #0a0a0a;
+    color: #1f2a44;
     text-decoration: none;
     transition: background 0.12s, border-color 0.12s;
     white-space: nowrap;
   }
-  .btn-pill:hover { background: #f5f5f5; border-color: rgba(0,0,0,0.25); }
-  .btn-ghost { background: transparent; border-color: rgba(0,0,0,0.1); color: #0a0a0a; }
-  .btn-ghost:hover { background: #f5f5f5; border-color: rgba(0,0,0,0.25); color: #0a0a0a; }
+  .btn-pill:hover { background: #f7f7f7; border-color: rgba(31,42,68,0.25); }
+  .btn-ghost { background: transparent; color: rgba(31,42,68,0.7); }
+  .btn-ghost:hover { background: #f7f7f7; color: #1f2a44; }
 
   .dropdown-wrapper { position: relative; }
   .dropdown-menu {
@@ -70,9 +70,9 @@
     transition: opacity 0.12s, visibility 0.12s;
     position: absolute; right: 0; top: 100%;
     background: #ffffff;
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 10px; padding: 6px; min-width: 210px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    border: 1px solid #dedfe3;
+    border-radius: 7px; padding: 6px; min-width: 210px;
+    box-shadow: 0 8px 24px rgba(31,42,68,0.1);
     margin-top: 4px;
   }
   .dropdown-wrapper:hover .dropdown-menu,
@@ -82,9 +82,9 @@
   .dropdown-menu a {
     display: block; padding: 7px 12px;
     font-family: 'Inter', sans-serif; font-size: 13px;
-    color: #0a0a0a; border-radius: 6px; text-decoration: none;
+    color: #1f2a44; border-radius: 4px; text-decoration: none;
     transition: background 0.1s;
   }
-  .dropdown-menu a:hover { background: rgba(166,209,255,0.15); color: #0a0a0a; }
-  .dropdown-divider { height: 0.5px; background: rgba(0,0,0,0.07); margin: 4px 8px; }
+  .dropdown-menu a:hover { background: #f7f7f7; }
+  .dropdown-divider { height: 0.5px; background: #dedfe3; margin: 4px 8px; }
 </style>

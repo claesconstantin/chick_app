@@ -30,10 +30,10 @@ const { postsJson } = Astro.props;
     position: relative;
     width: 100%;
     height: 320px;
-    border-radius: 12px;
+    border-radius: 7px;
     overflow: hidden;
-    background: rgba(166,209,255,0.08);
-    border: 1px solid rgba(0,0,0,0.07);
+    background: #f7f7f7;
+    border: 1px solid #dedfe3;
   }
   #cg-canvas {
     position: absolute; top: 0; left: 0;
@@ -87,15 +87,15 @@ const { postsJson } = Astro.props;
     border: 1px solid rgba(0,0,0,0.07); background: rgba(255,255,255,0.9);
     text-decoration: none; transition: background 0.12s, border-color 0.12s;
   }
-  .cg-article:hover { background: rgba(166,209,255,0.15); border-color: rgba(166,209,255,0.6); }
+  .cg-article:hover { background: #f7f7f7; border-color: #dedfe3; }
   .cg-article-title {
     font-family: 'Inter', sans-serif; font-size: 12px;
     font-weight: 500; color: #0a0a0a; margin-bottom: 4px; line-height: 1.4;
   }
   .cg-article-meta { display: flex; align-items: center; gap: 6px; }
   .cg-article-cat {
-    font-size: 9px; padding: 1px 7px; border-radius: 999px;
-    background: rgba(166,209,255,0.2); border: 1px solid rgba(166,209,255,0.4); color: #555555;
+    font-size: 9px; padding: 1px 7px; border-radius: 7px;
+    background: rgba(139,20,19,0.07); border: 1px solid rgba(139,20,19,0.15); color: #8b1413;
   }
   .cg-article-time { font-size: 10px; color: #888888; }
   .cg-no-articles {
@@ -118,8 +118,8 @@ const { postsJson } = Astro.props;
     tools: '🛠️ Tools', career: '💼 Career', 'soft-skills': '🤝 Soft Skills',
   };
   const CAT_COLORS: Record<string, string> = {
-    mindset: '#a6d1ff', frameworks: '#e3dff2',
-    career: '#daf1de', 'soft-skills': '#a6d1ff', tools: '#e3dff2',
+    mindset: '#1f2a44', frameworks: '#8b1413',
+    career: '#3d5a80', 'soft-skills': '#8b1413', tools: '#1f2a44',
   };
 
   // ── Word extraction (Obsidian methodology) ────────────

@@ -44,40 +44,37 @@ const postsWithBody = sortedPosts.map(p => ({
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Serif+Text:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     :root {
       --bg: #ffffff;
-      --bg-dark: #000000;
-      --text: #0a0a0a;
-      --text-secondary: #555555;
-      --text-muted: #888888;
-      --accent: #a6d1ff;
-      --accent-2: #e3dff2;
-      --accent-3: #daf1de;
-      --accent-light: rgba(166,209,255,0.25);
-      --border: rgba(0,0,0,0.07);
-      --surface: rgba(255,255,255,0.95);
-      --search-bg: #f5f5f5;
+      --bg-alt: #f7f7f7;
+      --text: #1f2a44;
+      --text-secondary: rgba(31,42,68,0.7);
+      --text-muted: rgba(31,42,68,0.45);
+      --accent: #8b1413;
+      --accent-light: rgba(139,20,19,0.07);
+      --border: #dedfe3;
+      --surface: #ffffff;
+      --search-bg: #f7f7f7;
     }
     body {
       font-family: 'Inter', sans-serif;
       background-color: var(--bg);
-      background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(0,0,0,0.03) 27px, rgba(0,0,0,0.03) 28px);
       color: var(--text); margin: 0; padding: 0; font-size: 15px; line-height: 1.7;
     }
     a { color: inherit; text-decoration: none; }
-    h1, h2, h3 { font-family: 'Instrument Serif', serif; font-weight: 400; line-height: 1.2; }
-    strong, b { font-weight: 500; }
+    h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; line-height: 1.2; }
+    strong, b { font-weight: 600; }
 
     /* Hero */
     .hero { padding: 3rem 1.5rem 2rem; max-width: 960px; margin: 0 auto; }
     .pill-tag {
       display: inline-block; font-size: 11px;
-      background: var(--accent-light); border: 1px solid rgba(166,209,255,0.5);
-      color: var(--text-secondary); border-radius: 999px;
+      background: var(--accent-light); border: 1px solid rgba(139,20,19,0.15);
+      color: var(--accent); border-radius: 7px;
       padding: 3px 12px; margin-bottom: 1rem; letter-spacing: 0.02em;
     }
     .hero h1 { font-size: 48px; margin: 0 0 0.4rem; color: var(--text); }
@@ -86,27 +83,27 @@ const postsWithBody = sortedPosts.map(p => ({
     /* Search */
     .search-wrap { position: relative; margin-bottom: 1.5rem; }
     .search-bar {
-      width: 100%; padding: 10px 18px; border-radius: 999px;
+      width: 100%; padding: 10px 18px; border-radius: 7px;
       border: 1px solid var(--border); background: var(--search-bg);
       font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text); outline: none;
     }
     .search-bar::placeholder { color: var(--text-muted); }
-    .search-bar:focus { border-color: rgba(166,209,255,0.8); }
+    .search-bar:focus { border-color: rgba(31,42,68,0.35); }
     .search-results {
       display: none;
       position: absolute; top: calc(100% + 6px); left: 0; right: 0;
-      background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
-      padding: 6px; z-index: 50; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+      padding: 6px; z-index: 50; box-shadow: 0 8px 24px rgba(31,42,68,0.1);
     }
     .search-result {
       display: flex; align-items: center; gap: 0.6rem;
-      padding: 8px 10px; border-radius: 8px; text-decoration: none; color: var(--text);
+      padding: 8px 10px; border-radius: 4px; text-decoration: none; color: var(--text);
     }
-    .search-result:hover { background: var(--accent-light); }
+    .search-result:hover { background: var(--bg-alt); }
     .sr-cat {
-      font-size: 10px; padding: 2px 8px; border-radius: 999px;
-      background: var(--accent-light); border: 1px solid rgba(166,209,255,0.5);
-      color: var(--text-secondary); white-space: nowrap; flex-shrink: 0;
+      font-size: 10px; padding: 2px 8px; border-radius: 7px;
+      background: var(--accent-light); border: 1px solid rgba(139,20,19,0.15);
+      color: var(--accent); white-space: nowrap; flex-shrink: 0;
     }
     .sr-title { flex: 1; font-size: 13px; }
     .sr-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
@@ -125,21 +122,21 @@ const postsWithBody = sortedPosts.map(p => ({
     }
     .timer-inline-input::-webkit-outer-spin-button,
     .timer-inline-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-    .timer-inline-input:focus { border-color: rgba(166,209,255,0.8); }
+    .timer-inline-input:focus { border-color: rgba(31,42,68,0.35); }
     .timer-bottom { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.25rem; }
     .timer-display {
-      font-family: 'Instrument Serif', serif; font-size: 32px;
-      color: #0a0a0a; min-width: 80px;
+      font-family: 'DM Serif Display', serif; font-size: 32px;
+      color: var(--text); min-width: 80px;
     }
     .timer-btns { display: flex; align-items: center; gap: 0.4rem; }
     .timer-btn {
       font-family: 'Inter', sans-serif; font-size: 13px;
-      padding: 5px 14px; border-radius: 999px;
+      padding: 5px 14px; border-radius: 7px;
       border: 1px solid var(--border); background: transparent;
       color: var(--text-secondary); cursor: pointer; transition: all 0.12s;
     }
-    .timer-btn:hover { background: var(--accent-light); border-color: rgba(166,209,255,0.8); color: var(--text); }
-    .timer-btn.active { border-color: rgba(166,209,255,0.8); color: #0a0a0a; }
+    .timer-btn:hover { background: var(--bg-alt); border-color: rgba(31,42,68,0.25); color: var(--text); }
+    .timer-btn.active { border-color: rgba(31,42,68,0.35); color: var(--text); }
     .timer-note { font-size: 12px; color: var(--text-muted); margin: 0 0 2.5rem; }
 
     /* Section labels */
@@ -156,10 +153,10 @@ const postsWithBody = sortedPosts.map(p => ({
     .categories-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
     .category-card {
       background: var(--bg); border: 1px solid var(--border);
-      border-radius: 10px; padding: 1rem; text-decoration: none;
+      border-radius: 7px; padding: 1rem; text-decoration: none;
       display: block; transition: border-color 0.12s, background 0.12s;
     }
-    .category-card:hover { background: rgba(166,209,255,0.12); border-color: rgba(166,209,255,0.5); }
+    .category-card:hover { background: var(--bg-alt); border-color: rgba(31,42,68,0.2); }
     .category-card.dashed { border-style: dashed; display: flex; align-items: center; justify-content: center; }
     .category-emoji { font-size: 20px; margin-bottom: 0.25rem; }
     .category-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 0.15rem; }
@@ -174,9 +171,9 @@ const postsWithBody = sortedPosts.map(p => ({
     }
     .article-row:first-child { border-top: 0.5px solid var(--border); }
     .cat-pill {
-      font-size: 11px; padding: 3px 10px; border-radius: 999px;
-      background: var(--accent-light); border: 1px solid rgba(166,209,255,0.5);
-      color: var(--text-secondary); white-space: nowrap; flex-shrink: 0;
+      font-size: 11px; padding: 3px 10px; border-radius: 7px;
+      background: var(--accent-light); border: 1px solid rgba(139,20,19,0.15);
+      color: var(--accent); white-space: nowrap; flex-shrink: 0;
     }
     .article-title { flex: 1; font-size: 14px; color: var(--text); }
     .article-title:hover { text-decoration: underline; }
